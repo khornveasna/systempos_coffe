@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  coffee-pos:
+    build: .
+    ports:
+      - "3700:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=/app/data/coffee_pos.db
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

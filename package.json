@@ -4,7 +4,7 @@
   "description": "Coffee POS System - Modern Express.js Point of Sale for Coffee Shops with REST API, SQLite, and Real-time Sync",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "npm run dev",
     "dev": "nodemon server.js",
     "production": "NODE_ENV=production node server.js",
     "setup": "npm install && node migrate-db.js",
@@ -33,9 +33,13 @@
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^9.2.2",
+    "better-sqlite3": "^12.8.0",
     "cors": "^2.8.5",
+<<<<<<< HEAD
     "dotenv": "^16.6.1",
+=======
+    "dotenv": "^16.3.1",
+>>>>>>> acbaef74e4deb37ef63c984d184b45dcbd99c93d
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.0",
     "helmet": "^7.1.0",
@@ -47,7 +51,7 @@
     "nodemon": "^3.0.2"
   },
   "engines": {
-    "node": ">=14.0.0",
+    "node": ">=20.0.0",
     "npm": ">=6.0.0"
   },
   "repository": {

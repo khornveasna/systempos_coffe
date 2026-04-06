@@ -13,11 +13,11 @@ yarn.lock
 .env.development
 
 # Database files
-*.db
-*.db-journal
-*.db-wal
-*.sqlite
-*.sqlite3
+# *.db
+# *.db-journal
+# *.db-wal
+# *.sqlite
+# *.sqlite3
 
 # Logs
 logs/

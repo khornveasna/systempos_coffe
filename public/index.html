@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee POS System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-logo">
+                <i class="fas fa-coffee"></i>
+                <h1>Coffee POS</h1>
+                <p>ប្រព័ន្ធគ្រប់គ្រងហាងកាហ្វេ</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> ឈ្មោះអ្នកប្រើប្រាស់</label>
+                    <input type="text" id="username" placeholder="បញ្ចូលឈ្មោះអ្នកប្រើប្រាស់" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> ពាក្យសម្ងាត់</label>
+                    <input type="password" id="password" placeholder="បញ្ចូលពាក្យសម្ងាត់" required>
+                </div>
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> ចូលប្រើប្រាស់
+                </button>
+            </form>
+            <div class="login-demo">
+                <p><i class="fas fa-info-circle"></i> សាកល្បង: admin / 1234</p>
+                <a href="reset.html" style="display: inline-block; margin-top: 10px; padding: 8px 15px; background: var(--warning); color: white; border-radius: 5px; text-decoration: none; font-size: 12px;">
+                    <i class="fas fa-trash"></i> លុបទិន្នន័យទាំងអស់
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="appScreen" class="app-screen hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-coffee"></i>
+                <span>Coffee POS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="pos">
+                    <i class="fas fa-cash-register"></i>
+                    <span>លក់</span>
+                </a>
+                <a href="#" class="nav-item" data-page="items">
+                    <i class="fas fa-box"></i>
+                    <span>ការគ្រប់គ្រងទំនិញ</span>
+                </a>
+                <a href="#" class="nav-item" data-page="orders">
+                    <i class="fas fa-receipt"></i>
+                    <span>ការលក់</span>
+                </a>
+                <a href="#" class="nav-item" data-page="reports">
+                    <i class="fas fa-chart-line"></i>
+                    <span>របាយការណ៍</span>
+                </a>
+                <a href="#" class="nav-item" data-page="users" id="usersNav">
+                    <i class="fas fa-users"></i>
+                    <span>អ្នកប្រើប្រាស់</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <span id="currentUser">Admin</span>
+                        <span id="userPermissions" style="font-size: 10px; color: var(--text-light); margin-top: 2px;"></span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>ចាកចេញ</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- POS/Sales Page -->
+            <div id="posPage" class="page active">
+                <header class="page-header">
+                    <h1><i class="fas fa-cash-register"></i> ការលក់</h1>
+                    <div class="header-actions">
+                        <button id="newOrderBtn" class="btn-action-primary">
+                            <i class="fas fa-plus"></i> ការកុម្ម៉ង់ថ្មី
+                        </button>
+                    </div>
+                </header>
+
+                <div class="pos-container">
+                    <!-- Products Section -->
+                    <div class="products-section">
+                        <div class="search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchProduct" placeholder="ស្វែងរកមុខម្ហូប...">
+                        </div>
+
+                        <div class="categories">
+                            <button class="category-btn active" data-category="all">
+                                <i class="fas fa-th"></i> ទាំងអស់
+                            </button>
+                            <button class="category-btn" data-category="coffee">
+                                <i class="fas fa-coffee"></i> កាហ្វេ
+                            </button>
+                            <button class="category-btn" data-category="tea">
+                                <i class="fas fa-leaf"></i> តែបៃតង
+                            </button>
+                        </div>
+
+                        <div class="products-grid" id="productsGrid">
+                            <!-- Products will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Cart Section -->
+                    <div class="cart-section">
+                        <div class="cart-header">
+                            <h2><i class="fas fa-shopping-cart"></i> រទេះ <span id="cartCount">(0)</span></h2>
+                            <button id="clearCartBtn" class="btn-clear">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <div class="cart-items" id="cartItems">
+                            <div class="empty-cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <p>គ្មានមុខម្ហូបក្នុងរទេះ</p>
+                            </div>
+                        </div>
+
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span>ចំនួនទឹកប្រាក់:</span>
+                                <span id="subtotal">0៛</span>
+                            </div>
+                            <div class="summary-row discount-row">
+                                <div class="discount-input">
+                                    <label>បញ្ចុះតម្លៃ (%):</label>
+                                    <input type="number" id="discountPercent" placeholder="0" min="0" max="100">
+                                </div>
+                                <span id="discountAmount" class="discount-amount">-0៛</span>
+                            </div>
+                            <div class="summary-row sale-row">
+                                <div class="sale-input">
+                                    <label>តម្លៃបញ្ចុះ (៛):</label>
+                                    <input type="number" id="saleAmount" placeholder="0" min="0">
+                                </div>
+                            </div>
+                            <div class="summary-row total">
+                                <span>សរុបទូទាត់:</span>
+                                <span id="total">0៛</span>
+                            </div>
+                        </div>
+
+                        <div class="cart-actions">
+                            <button id="checkoutBtn" class="btn-checkout" disabled>
+                                <i class="fas fa-money-bill-wave"></i> ទូទាត់ប្រាក់
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Management Page -->
+            <div id="itemsPage" class="page hidden">
+                <header class="page-header">
+                    <h1><i class="fas fa-box"></i> គ្រប់គ្រងមុខម្ហូប</h1>
+                    <div class="header-actions">
+                        <button id="addItemBtn" class="btn-action">
+                            <i class="fas fa-plus"></i> បន្ថែមមុខម្ហូប
+                        </button>
+                    </div>
+                </header>
+
+                <div class="items-container">
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchItem" placeholder="ស្វែងរកមុខម្ហូប...">
+                        </div>
+                        <select id="filterCategory" class="filter-select">
+                            <option value="all">គ្រប់ប្រភេទ</option>
+                            <option value="coffee">កាហ្វេ</option>
+                            <option value="tea">តែបៃតង</option>
+                        </select>
+                    </div>
+
+                    <div class="items-grid" id="itemsGrid">
+                        <!-- Items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders History Page -->
+            <div id="ordersPage" class="page hidden">
+                <header class="page-header">
+                    <h1><i class="fas fa-receipt"></i> ប្រវត្តិការលក់</h1>
+                    <div class="header-actions">
+                        <input type="date" id="orderDateFilter" class="date-filter">
+                        <button id="exportOrdersBtn" class="btn-action">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </header>
+
+                <div class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ល.រ</th>
+                                <th>លេខវិក័យបត្រ</th>
+                                <th>កាលបរិច្ឆេទ</th>
+                                <th>មុខម្ហូប</th>
+                                <th>ចំនួន</th>
+                                <th>សរុប</th>
+                                <th>បញ្ចុះ</th>
+                                <th>អ្នកបម្រើ</th>
+                                <th>សកម្មភាព</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reportsPage" class="page hidden">
+                <header class="page-header">
+                    <h1><i class="fas fa-chart-line"></i> របាយការណ៍</h1>
+                    <div class="header-actions">
+                        <select id="reportPeriod" class="period-select">
+                            <option value="today">ថ្ងៃនេះ</option>
+                            <option value="yesterday">ម្សិលមិញ</option>
+                            <option value="week">សប្តាហ៍នេះ</option>
+                            <option value="lastWeek">សប្តាហ៍មុន</option>
+                            <option value="month">ខែនេះ</option>
+                            <option value="lastMonth">ខែមុន</option>
+                            <option value="year">ឆ្នាំនេះ</option>
+                            <option value="lastYear">ឆ្នាំមុន</option>
+                            <option value="custom">កំណត់ខ្លួនឯង</option>
+                        </select>
+                        <div id="customDateRange" class="custom-date-range hidden">
+                            <input type="date" id="customStartDate" class="date-filter">
+                            <span>ដល់</span>
+                            <input type="date" id="customEndDate" class="date-filter">
+                        </div>
+                        <button id="generateReportBtn" class="btn-action">
+                            <i class="fas fa-sync"></i> ធ្វើឡើងវិញ
+                        </button>
+                    </div>
+                </header>
+
+                <div class="reports-container">
+                    <div class="report-period-title" id="reportPeriodTitle">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>រយៈពេល: ថ្ងៃនេះ</span>
+                    </div>
+                    <div class="reports-summary">
+                        <div class="report-card primary">
+                            <div class="report-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="report-info">
+                                <h4>ចំណូលសរុប</h4>
+                                <h2 id="totalRevenue">0៛</h2>
+                            </div>
+                        </div>
+                        <div class="report-card success">
+                            <div class="report-icon">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="report-info">
+                                <h4>ចំនួនការលក់</h4>
+                                <h2 id="totalOrders">0</h2>
+                            </div>
+                        </div>
+                        <div class="report-card warning">
+                            <div class="report-icon">
+                                <i class="fas fa-coffee"></i>
+                            </div>
+                            <div class="report-info">
+                                <h4>មុខម្ហូបលក់ដាច់</h4>
+                                <h2 id="topProduct">-</h2>
+                            </div>
+                        </div>
+                        <div class="report-card info">
+                            <div class="report-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="report-info">
+                                <h4>មធ្យម/ការលក់</h4>
+                                <h2 id="avgOrderValue">0៛</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reports-content">
+                        <div class="report-section">
+                            <h3><i class="fas fa-chart-line"></i> ស្ថិតិការលក់</h3>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <label>ចំណូលសរុប</label>
+                                    <span id="reportTotalRevenue">0៛</span>
+                                </div>
+                                <div class="stat-box">
+                                    <label>បញ្ចុះសរុប</label>
+                                    <span id="reportTotalDiscount">0៛</span>
+                                </div>
+                                <div class="stat-box">
+                                    <label>ចំនួនមុខម្ហូបលក់</label>
+                                    <span id="reportItemsSold">0</span>
+                                </div>
+                                <div class="stat-box">
+                                    <label>អតិថិជនសរុប</label>
+                                    <span id="reportCustomers">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="report-section">
+                            <h3><i class="fas fa-trophy"></i> មុខម្ហូបលក់ដាច់ 5 មុខ</h3>
+                            <div class="top-products" id="topProductsList">
+                                <!-- Top products will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Management Page -->
+            <div id="usersPage" class="page hidden">
+                <header class="page-header">
+                    <h1><i class="fas fa-users"></i> គ្រប់គ្រងអ្នកប្រើប្រាស់</h1>
+                    <div class="header-actions">
+                        <button id="addUserBtn" class="btn-action">
+                            <i class="fas fa-plus"></i> បន្ថែមអ្នកប្រើប្រាស់
+                        </button>
+                    </div>
+                </header>
+
+                <div class="users-table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ឈ្មោះអ្នកប្រើប្រាស់</th>
+                                <th>ឈ្មោះពេញ</th>
+                                <th>តួនាទី</th>
+                                <th>កាលបរិច្ឆេទបង្កើត</th>
+                                <th>សកម្មភាព</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content checkout-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-money-bill-wave"></i> ទូទាត់ប្រាក់</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="checkout-content">
+                    <div class="receipt-section">
+                        <div class="receipt">
+                            <div class="receipt-header">
+                                <h3>Coffee POS</h3>
+                                <p>ប្រព័ន្ធគ្រប់គ្រងហាងកាហ្វេ</p>
+                                <p class="receipt-number">លេខវិក័យបត្រ: <span id="receiptNumber"></span></p>
+                                <p class="receipt-date">កាលបរិច្ឆេទ: <span id="receiptDate"></span></p>
+                                <p class="receipt-server">អ្នកបម្រើ: <span id="receiptServer"></span></p>
+                            </div>
+                            <div class="receipt-divider"></div>
+                            <div class="receipt-items" id="receiptItems"></div>
+                            <div class="receipt-divider"></div>
+                            <div class="receipt-totals">
+                                <div class="receipt-row">
+                                    <span>ចំនួនទឹកប្រាក់:</span>
+                                    <span id="receiptSubtotal">0៛</span>
+                                </div>
+                                <div class="receipt-row discount">
+                                    <span>បញ្ចុះ (%):</span>
+                                    <span id="receiptDiscountPercent">0%</span>
+                                </div>
+                                <div class="receipt-row discount">
+                                    <span>បញ្ចុះ (៛):</span>
+                                    <span id="receiptDiscountAmount">0៛</span>
+                                </div>
+                                <div class="receipt-row total">
+                                    <span>សរុប:</span>
+                                    <span id="receiptTotal">0៛</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="payment-section">
+                        <h4>វិធីទូទាត់</h4>
+                        <div class="payment-methods">
+                            <button class="payment-method active" data-method="cash">
+                                <i class="fas fa-money-bill"></i>
+                                <span>សាច់ប្រាក់</span>
+                            </button>
+                            <button class="payment-method" data-method="card">
+                                <i class="fas fa-credit-card"></i>
+                                <span>កាត</span>
+                            </button>
+                            <button class="payment-method" data-method="khqr">
+                                <i class="fas fa-qrcode"></i>
+                                <span>KHQR</span>
+                            </button>
+                            <button class="payment-method" data-method="bakong">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Bakong</span>
+                            </button>
+                        </div>
+                        <div class="payment-form">
+                            <div class="form-group">
+                                <label>ចំនួនទទួល (៛):</label>
+                                <input type="number" id="amountReceived" placeholder="0" min="0">
+                            </div>
+                            <div class="change-display">
+                                <div class="change-label">
+                                    <i class="fas fa-coins"></i>
+                                    <span>ប្រាក់អាប់:</span>
+                                </div>
+                                <span id="changeAmount">0៛</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel modal-close">បោះបង់</button>
+                <button type="button" id="confirmPaymentBtn" class="btn-confirm">
+                    <i class="fas fa-check-circle"></i> បញ្ជាក់ការទូទាត់
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="itemModalTitle"><i class="fas fa-plus"></i> បន្ថែមមុខម្ហូប</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="itemForm">
+                <div class="modal-body">
+                    <input type="hidden" id="itemId">
+                    
+                    <div class="form-group image-upload-group">
+                        <label>រូបភាពមុខម្ហូប</label>
+                        <div class="image-upload">
+                            <input type="file" id="itemImageFile" accept="image/*" onchange="pos.previewImage(this)">
+                            <input type="hidden" id="itemImage">
+                            <div class="upload-placeholder" id="uploadPlaceholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>ចុចដើម្បីជ្រើសរើសរូបភាព</p>
+                                <span>ឬអូសរូបភាពមកដាក់ទីនេះ</span>
+                            </div>
+                            <div class="image-preview" id="imagePreview"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>ឈ្មោះមុខម្ហូប *</label>
+                            <input type="text" id="itemName" required placeholder="បញ្ចូលឈ្មោះ">
+                        </div>
+                        <div class="form-group">
+                            <label>ប្រភេទ *</label>
+                            <select id="itemCategory" required>
+                                <option value="">ជ្រើសរើសប្រភេទ</option>
+                                <option value="coffee">កាហ្វេ</option>
+                                <option value="tea">តែបៃតង</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>តម្លៃលក់ (៛) *</label>
+                            <input type="number" id="itemPrice" required min="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>តម្លៃបញ្ចុះ (៛)</label>
+                            <input type="number" id="itemSalePrice" min="0" placeholder="0 (បើមាន)">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>សម្គាល់</label>
+                        <textarea id="itemDescription" rows="3" placeholder="បញ្ចូលការពិពណ៌នា (បើមាន)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ស្ថានភាព</label>
+                        <div class="status-toggle">
+                            <input type="checkbox" id="itemActive" checked>
+                            <label for="itemActive">ដាក់លក់</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel modal-close">បោះបង់</button>
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> រក្សាទុក
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="userModalTitle"><i class="fas fa-user-plus"></i> បន្ថែមអ្នកប្រើប្រាស់</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="userForm">
+                <div class="modal-body">
+                    <input type="hidden" id="userId">
+                    
+                    <div class="form-group">
+                        <label>ឈ្មោះអ្នកប្រើប្រាស់ *</label>
+                        <input type="text" id="userUsername" required placeholder="បញ្ចូលឈ្មោះអ្នកប្រើប្រាស់">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ឈ្មោះពេញ *</label>
+                        <input type="text" id="userFullname" required placeholder="បញ្ចូលឈ្មោះពេញ">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ពាក្យសម្ងាត់ *</label>
+                        <input type="password" id="userPassword" placeholder="បញ្ចូលពាក្យសម្ងាត់">
+                        <small id="passwordNote">ទុកទទំេ បើមិនចង់ផ្លាស់ប្តូរ</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>តួនាទី *</label>
+                        <select id="userRole" required>
+                            <option value="staff">បុគ្គលិក</option>
+                            <option value="manager">អ្នកគ្រប់គ្រង</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>សិទ្ធិប្រើប្រាស់ <small style="color: var(--warning);">(Admin គ្រប់គ្រង)</small></label>
+                        <div class="permissions">
+                            <label class="permission-item">
+                                <input type="checkbox" id="permPOS" checked>
+                                <span>លក់ (POS)</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" id="permItems" checked>
+                                <span>គ្រប់គ្រងមុខម្ហូប</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" id="permOrders" checked>
+                                <span>មើលការលក់</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" id="permReports">
+                                <span>របាយការណ៍</span>
+                            </label>
+                        </div>
+                        <small style="color: var(--text-light); margin-top: 8px; display: block;">
+                            <i class="fas fa-info-circle"></i> មានតែ Admin ទេដែលអាចកំណត់សិទ្ធិប្រើប្រាស់បាន
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel modal-close">បោះបង់</button>
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> រក្សាទុក
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order View Modal -->
+    <div id="orderViewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-receipt"></i> ព័ត៌មានការលក់</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-view" id="orderViewContent">
+                    <!-- Order details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel modal-close">បិទ</button>
+                <button type="button" id="printOrderBtn" class="btn-action-primary">
+                    <i class="fas fa-print"></i> ព្រីន
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Socket.io Client -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Core utilities -->
+    <script src="/js/data.js"></script>
+    <!-- App core + feature modules -->
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/socket.js"></script>
+    <script src="/js/pos.js"></script>
+    <script src="/js/items.js"></script>
+    <script src="/js/orders.js"></script>
+    <script src="/js/reports.js"></script>
+    <script src="/js/users.js"></script>
+    <script>const pos = new CoffeePOS();</script>
+</body>
+</html>
