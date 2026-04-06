@@ -7,13 +7,14 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/assets/mt_logo.png">
 </head>
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
         <div class="login-container">
             <div class="login-logo">
-                <i class="fas fa-coffee"></i>
+                <img src="/assets/mt_logo.png" alt="Coffee POS Logo">
                 <h1>Coffee POS</h1>
                 <p>ប្រព័ន្ធគ្រប់គ្រងហាងកាហ្វេ</p>
             </div>
@@ -41,11 +42,17 @@
 
     <!-- Main Application -->
     <div id="appScreen" class="app-screen hidden">
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <i class="fas fa-coffee"></i>
+                <img src="/assets/mt_logo.png" alt="Coffee POS Logo" class="sidebar-logo">
                 <span>Coffee POS</span>
+                <button class="close-sidebar-btn hidden" id="closeSidebarBtn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-page="pos">
@@ -86,6 +93,17 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Mobile Cart Toggle Button -->
+            <button class="mobile-cart-toggle" id="mobileCartToggle">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </button>
+            
             <!-- POS/Sales Page -->
             <div id="posPage" class="page active">
                 <header class="page-header">

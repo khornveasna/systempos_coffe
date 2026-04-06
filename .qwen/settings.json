@@ -23,7 +23,8 @@
       "Bash(tasklist)",
       "Bash(type *)",
       "Bash(dir *)",
-      "Bash(cmd *)"
+      "Bash(cmd *)",
+      "Bash(xcopy *)"
     ]
   },
   "$version": 3

@@ -105,6 +105,37 @@ class CoffeePOS {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', e => { if (e.target === modal) this.closeAllModals(); });
         });
+
+        // Mobile sidebar toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', () => this.toggleSidebar());
+        }
+        if (closeSidebarBtn) {
+            closeSidebarBtn.addEventListener('click', () => this.toggleSidebar());
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => this.toggleSidebar());
+        }
+        
+        // Mobile cart toggle
+        const mobileCartToggle = document.getElementById('mobileCartToggle');
+        if (mobileCartToggle) {
+            mobileCartToggle.addEventListener('click', () => this.toggleCart());
+        }
+        
+        // Close sidebar when clicking nav items on mobile
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    this.toggleSidebar();
+                }
+            });
+        });
     }
 
     navigate(page) {
@@ -140,6 +171,46 @@ class CoffeePOS {
     closeAllModals() {
         document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
         this.viewingOrder = null;
+    }
+
+    toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        
+        if (!sidebar || !overlay || !mobileMenuToggle) return;
+        
+        const isActive = sidebar.classList.toggle('active');
+        
+        if (isActive) {
+            overlay.classList.add('active');
+            mobileMenuToggle.classList.add('hidden');
+        } else {
+            overlay.classList.remove('active');
+            mobileMenuToggle.classList.remove('hidden');
+        }
+    }
+
+    toggleCart() {
+        const cartSection = document.querySelector('.cart-section');
+        if (!cartSection) return;
+        
+        cartSection.classList.toggle('active');
+    }
+
+    updateCartBadge() {
+        const badge = document.getElementById('cartBadge');
+        if (!badge) return;
+        
+        const totalItems = this.cart.reduce((sum, item) => sum + item.qty, 0);
+        badge.textContent = totalItems;
+        
+        // Show/hide badge based on count
+        if (totalItems > 0) {
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
     }
 
     showToast(message, type = 'success') {
