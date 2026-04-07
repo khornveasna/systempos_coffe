@@ -36,6 +36,8 @@ class DatabaseService {
                 role TEXT NOT NULL DEFAULT 'staff',
                 permissions TEXT DEFAULT '["pos","orders"]',
                 createdAt TEXT NOT NULL,
+                startDate TEXT,
+                endDate TEXT,
                 active INTEGER DEFAULT 1
             )
         `);

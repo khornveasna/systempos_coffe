@@ -7,8 +7,12 @@ CoffeePOS.prototype.renderOrders = async function () {
     try {
         let url = '/api/orders?';
         if (this.currentUser.role === 'staff') url += `userId=${this.currentUser.id}&`;
-        const dateFilter = document.getElementById('orderDateFilter').value;
-        if (dateFilter) url += `date=${dateFilter}&`;
+        
+        // Date range filter
+        const startDate = document.getElementById('orderStartDate').value;
+        const endDate = document.getElementById('orderEndDate').value;
+        if (startDate) url += `startDate=${startDate}&`;
+        if (endDate) url += `endDate=${endDate}&`;
 
         const result = await fetch(url).then(r => r.json());
 

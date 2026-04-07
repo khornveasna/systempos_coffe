@@ -23,11 +23,11 @@ class UserModel {
     }
 
     findAll() {
-        return this.db.prepare('SELECT id, username, fullname, role, permissions, createdAt, active FROM users').all();
+        return this.db.prepare('SELECT id, username, fullname, role, permissions, createdAt, startDate, endDate, active FROM users').all();
     }
 
     create(userData) {
-        const { username, password, fullname, role, permissions, active = 1 } = userData;
+        const { username, password, fullname, role, permissions, startDate, endDate, active = 1 } = userData;
         const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const hashedPassword = bcrypt.hashSync(password, 10);
         const createdAt = new Date().toISOString();
@@ -37,15 +37,15 @@ class UserModel {
             : (permissions || []);
 
         this.db.prepare(`
-            INSERT INTO users (id, username, password, fullname, role, permissions, createdAt, active)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(id, username, hashedPassword, fullname, role, JSON.stringify(finalPermissions), createdAt, active ? 1 : 0);
+            INSERT INTO users (id, username, password, fullname, role, permissions, createdAt, startDate, endDate, active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(id, username, hashedPassword, fullname, role, JSON.stringify(finalPermissions), createdAt, startDate || null, endDate || null, active ? 1 : 0);
 
         return this.findById(id);
     }
 
     update(id, updateData) {
-        const { username, password, fullname, role, permissions, active } = updateData;
+        const { username, password, fullname, role, permissions, startDate, endDate, active } = updateData;
 
         const finalPermissions = role === 'admin'
             ? ['pos', 'items', 'orders', 'reports', 'users']
@@ -54,14 +54,14 @@ class UserModel {
         if (password) {
             const hashedPassword = bcrypt.hashSync(password, 10);
             this.db.prepare(`
-                UPDATE users SET username = ?, password = ?, fullname = ?, role = ?, permissions = ?, active = ?
+                UPDATE users SET username = ?, password = ?, fullname = ?, role = ?, permissions = ?, startDate = ?, endDate = ?, active = ?
                 WHERE id = ?
-            `).run(username, hashedPassword, fullname, role, JSON.stringify(finalPermissions), active ? 1 : 0, id);
+            `).run(username, hashedPassword, fullname, role, JSON.stringify(finalPermissions), startDate || null, endDate || null, active ? 1 : 0, id);
         } else {
             this.db.prepare(`
-                UPDATE users SET username = ?, fullname = ?, role = ?, permissions = ?, active = ?
+                UPDATE users SET username = ?, fullname = ?, role = ?, permissions = ?, startDate = ?, endDate = ?, active = ?
                 WHERE id = ?
-            `).run(username, fullname, role, JSON.stringify(finalPermissions), active ? 1 : 0, id);
+            `).run(username, fullname, role, JSON.stringify(finalPermissions), startDate || null, endDate || null, active ? 1 : 0, id);
         }
 
         return this.findById(id);

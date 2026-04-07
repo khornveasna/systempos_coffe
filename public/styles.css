@@ -593,6 +593,17 @@ body {
     cursor: pointer;
 }
 
+.date-range-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-range-filter span {
+    color: var(--text-light);
+    font-size: 14px;
+}
+
 .custom-date-range {
     display: flex;
     align-items: center;

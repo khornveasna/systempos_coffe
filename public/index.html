@@ -231,7 +231,11 @@
                 <header class="page-header">
                     <h1><i class="fas fa-receipt"></i> ប្រវត្តិការលក់</h1>
                     <div class="header-actions">
-                        <input type="date" id="orderDateFilter" class="date-filter">
+                        <div class="date-range-filter">
+                            <input type="date" id="orderStartDate" class="date-filter" placeholder="From">
+                            <span>ដល់</span>
+                            <input type="date" id="orderEndDate" class="date-filter" placeholder="To">
+                        </div>
                         <button id="exportOrdersBtn" class="btn-action">
                             <i class="fas fa-download"></i> Export
                         </button>
@@ -646,6 +650,17 @@
                         <small style="color: var(--text-light); margin-top: 8px; display: block;">
                             <i class="fas fa-info-circle"></i> មានតែ Admin ទេដែលអាចកំណត់សិទ្ធិប្រើប្រាស់បាន
                         </small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>កាលបរិច្ឆេទចាប់ផ្តើម</label>
+                            <input type="datetime-local" id="userStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label>កាលបរិច្ឆេទបញ្ចប់</label>
+                            <input type="datetime-local" id="userEndDate">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

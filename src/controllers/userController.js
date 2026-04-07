@@ -67,7 +67,7 @@ class UserController {
 
     async createUser(req, res) {
         try {
-            const { username, password, fullname, role, permissions, userRole } = req.body;
+            const { username, password, fullname, role, permissions, startDate, endDate, userRole } = req.body;
 
             // Only admin can create users
             if (userRole !== 'admin') {
@@ -111,7 +111,9 @@ class UserController {
                 password,
                 fullname,
                 role,
-                permissions
+                permissions,
+                startDate,
+                endDate
             });
 
             const sanitizedUser = userModel.sanitizeUser(user);
@@ -137,7 +139,7 @@ class UserController {
 
     async updateUser(req, res) {
         try {
-            const { username, password, fullname, role, permissions, active, userRole } = req.body;
+            const { username, password, fullname, role, permissions, startDate, endDate, active, userRole } = req.body;
             const { id } = req.params;
 
             // Only admin can update users
@@ -175,6 +177,8 @@ class UserController {
                 fullname,
                 role,
                 permissions,
+                startDate,
+                endDate,
                 active
             });
 

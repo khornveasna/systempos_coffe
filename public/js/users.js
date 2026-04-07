@@ -80,6 +80,18 @@ CoffeePOS.prototype.openUserModal = function (userId = null) {
             document.getElementById('permItems').checked   = perms.includes('items');
             document.getElementById('permOrders').checked  = perms.includes('orders');
             document.getElementById('permReports').checked = perms.includes('reports');
+            
+            // Set duration fields
+            if (user.startDate) {
+                document.getElementById('userStartDate').value = new Date(user.startDate).toISOString().slice(0, 16);
+            } else {
+                document.getElementById('userStartDate').value = '';
+            }
+            if (user.endDate) {
+                document.getElementById('userEndDate').value = new Date(user.endDate).toISOString().slice(0, 16);
+            } else {
+                document.getElementById('userEndDate').value = '';
+            }
         }
     } else {
         this.editingUser = null;
@@ -101,6 +113,16 @@ CoffeePOS.prototype.saveUser = async function () {
     const fullname = document.getElementById('userFullname').value;
     const password = document.getElementById('userPassword').value;
     const role     = document.getElementById('userRole').value;
+    const startDate = document.getElementById('userStartDate').value || null;
+    const endDate   = document.getElementById('userEndDate').value || null;
+
+    // Validate dates
+    if (startDate && endDate) {
+        if (new Date(endDate) < new Date(startDate)) {
+            this.showToast('កាលបរិច្ឆេទបញ្ចប់មិនអាចមុនកាលបរិច្ឆេទចាប់ផ្តើមទេ!', 'error');
+            return;
+        }
+    }
 
     if (!id && !password) {
         this.showToast('សូមបញ្ចូលពាក្យសម្ងាត់!', 'error');
@@ -148,6 +170,7 @@ CoffeePOS.prototype.saveUser = async function () {
                     username, fullname,
                     password: password || undefined,
                     role, permissions, active: true,
+                    startDate, endDate,
                     userId: this.currentUser.id,
                     userRole: this.currentUser.role
                 })
@@ -177,6 +200,7 @@ CoffeePOS.prototype.saveUser = async function () {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username, password, fullname, role, permissions,
+                    startDate, endDate,
                     userId: this.currentUser.id,
                     userRole: this.currentUser.role
                 })

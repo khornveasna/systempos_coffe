@@ -195,7 +195,8 @@ class CoffeePOS {
         document.getElementById('userForm').addEventListener('submit', e => { e.preventDefault(); this.saveUser(); });
 
         // Orders
-        document.getElementById('orderDateFilter').addEventListener('change', () => this.renderOrders());
+        document.getElementById('orderStartDate').addEventListener('change', () => this.renderOrders());
+        document.getElementById('orderEndDate').addEventListener('change', () => this.renderOrders());
         document.getElementById('exportOrdersBtn').addEventListener('click', () => this.exportOrders());
         document.getElementById('printOrderBtn').addEventListener('click', () => this.printOrder());
 
