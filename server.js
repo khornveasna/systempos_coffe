@@ -33,7 +33,7 @@ const io = new Server(server, {
     }
 });
 
-socketService.initialize(io);
+socketService.initialize(io);   
 
 app.use(helmet({
     contentSecurityPolicy: false,

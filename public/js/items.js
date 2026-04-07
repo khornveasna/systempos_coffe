@@ -32,8 +32,8 @@ CoffeePOS.prototype.renderItems = function () {
                             : `<span class="price">${formatCurrency(item.price)}</span>`}
                     </div>
                     <div class="item-card-actions">
-                        <button class="btn-edit-item"   onclick="pos.openItemModal(${item.id})"><i class="fas fa-edit"></i> កែសម្រួល</button>
-                        <button class="btn-delete-item" onclick="pos.deleteItem(${item.id})"><i class="fas fa-trash"></i> លុប</button>
+                        <button class="btn-edit-item"   onclick='pos.openItemModal(${JSON.stringify(item.id)})'><i class="fas fa-edit"></i> កែសម្រួល</button>
+                        <button class="btn-delete-item" onclick='pos.deleteItem(${JSON.stringify(item.id)})'><i class="fas fa-trash"></i> លុប</button>
                     </div>
                 </div>
             </div>`;
@@ -47,7 +47,7 @@ CoffeePOS.prototype.openItemModal = function (itemId = null) {
     document.getElementById('uploadPlaceholder').style.display = 'block';
 
     if (itemId) {
-        const item = this.data.products.find(p => p.id === itemId);
+        const item = this.data.products.find(p => String(p.id) === String(itemId));
         if (item) {
             this.editingItem = item;
             document.getElementById('itemModalTitle').innerHTML = '<i class="fas fa-edit"></i> កែសម្រួលមុខម្ហូប';
@@ -124,7 +124,7 @@ CoffeePOS.prototype.saveItem = function () {
 
 CoffeePOS.prototype.deleteItem = function (id) {
     if (confirm('តើអ្នកចង់លុបមុខម្ហូបនេះទេ?')) {
-        this.data.products = this.data.products.filter(p => p.id !== id);
+        this.data.products = this.data.products.filter(p => String(p.id) !== String(id));
         saveData(this.data);
         this.renderItems();
         this.showToast('បានលុបមុខម្ហូប!', 'success');

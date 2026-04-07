@@ -24,7 +24,7 @@ CoffeePOS.prototype.renderProducts = function () {
     grid.innerHTML = products.map(p => {
         const hasSale = p.salePrice && p.salePrice > 0;
         return `
-            <div class="product-card" data-id="${p.id}" onclick="pos.addToCart(${p.id})">
+            <div class="product-card" data-id="${p.id}" onclick='pos.addToCart(${JSON.stringify(p.id)})'>
                 ${p.image ? `<img src="${p.image}" alt="${p.name}">` : `<div class="product-icon"><i class="fas ${p.icon}"></i></div>`}
                 <h3>${p.name}</h3>
                 ${hasSale
@@ -35,7 +35,7 @@ CoffeePOS.prototype.renderProducts = function () {
 };
 
 CoffeePOS.prototype.addToCart = function (productId) {
-    const product = this.data.products.find(p => p.id === productId);
+    const product = this.data.products.find(p => String(p.id) === String(productId));
     if (!product) return;
 
     const existing = this.cart.find(item => item.id === productId);
