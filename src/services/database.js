@@ -98,7 +98,9 @@ class DatabaseService {
             this.db.exec(`
                 INSERT INTO categories (id, name, name_km, icon) VALUES
                 ('cat_coffee', 'Coffee', 'កាហ្វេ', 'fa-coffee'),
-                ('cat_tea', 'Tea', 'តែបៃតង', 'fa-leaf')
+                ('cat_coco_shake', 'Coco-Shake', 'កូកូ-សេក', 'fa-glass-water'),
+                ('cat_tea', 'Tea', 'តែបៃតង', 'fa-leaf'),
+                ('cat_cub', 'Cub', 'កាប់', 'fa-mug-hot')
             `);
         }
 
@@ -121,14 +123,18 @@ class DatabaseService {
         if (productsCount.count === 0) {
             this.db.exec(`
                 INSERT INTO products (id, name, name_km, category_id, price, salePrice, icon, description) VALUES
-                ('prod_1', 'កាហ្វេស្រស់', 'Fresh Coffee', 'cat_coffee', 8000, 0, 'fa-coffee', 'កាហ្វេស្រស់ឆ្ងាញ់'),
+                ('prod_1', 'កាហ្វេសរស់', 'Fresh Coffee', 'cat_coffee', 8000, 0, 'fa-coffee', 'កាហ្វេស្រស់ឆ្ងាញ់'),
                 ('prod_2', 'កាហ្វេទឹកដោះគោ', 'Coffee with Milk', 'cat_coffee', 10000, 0, 'fa-coffee', 'កាហ្វេទឹកដោះគោផ្អែម'),
                 ('prod_3', 'កាហ្វេទឹកក្រឡុក', 'Shaken Coffee', 'cat_coffee', 12000, 10000, 'fa-blender', 'កាហ្វេទឹកក្រឡុកត្រជាក់'),
-                ('prod_4', 'កាហ្វេស្រស់ត្រជាក់', 'Iced Fresh Coffee', 'cat_coffee', 9000, 0, 'fa-coffee', 'កាហ្វេស្រស់ត្រជាក់'),
-                ('prod_5', 'តែបៃតង', 'Green Tea', 'cat_tea', 7000, 0, 'fa-leaf', 'តែបៃតងក្ដៅ'),
-                ('prod_6', 'តែបៃតងទឹកឃ្មុំ', 'Green Tea with Honey', 'cat_tea', 8000, 0, 'fa-leaf', 'តែបៃតងទឹកឃ្មុំ'),
-                ('prod_7', 'តែបៃតងទឹកដោះគោ', 'Green Tea with Milk', 'cat_tea', 9000, 0, 'fa-leaf', 'តែបៃតងទឹកដោះគោ'),
-                ('prod_8', 'តែបៃតងត្រជាក់', 'Iced Green Tea', 'cat_tea', 7500, 0, 'fa-leaf', 'តែបៃតងត្រជាក់')
+                ('prod_4', 'កាហ្វេស្រស់តរជាក់', 'Iced Fresh Coffee', 'cat_coffee', 9000, 0, 'fa-coffee', 'កាហ្វេសរស់ត្រជាក់'),
+                ('prod_5', 'កូកូសេក', 'Coco Shake', 'cat_coco_shake', 9000, 0, 'fa-glass-water', 'កូកូសេកឆ្ងាញ់'),
+                ('prod_6', 'កូកូសេកទឹកដោះគោ', 'Coco Shake with Milk', 'cat_coco_shake', 10000, 0, 'fa-glass-water', 'កូកូសេកទឹកដោះគោ'),
+                ('prod_7', 'តែបៃតង', 'Green Tea', 'cat_tea', 7000, 0, 'fa-leaf', 'តែបៃតងក្ដៅ'),
+                ('prod_8', 'តែបៃតងទឹកឃ្មុំ', 'Green Tea with Honey', 'cat_tea', 8000, 0, 'fa-leaf', 'តែបៃតងទឹកឃ្មុំ'),
+                ('prod_9', 'តែបៃតងទឹកដោះគោ', 'Green Tea with Milk', 'cat_tea', 9000, 0, 'fa-leaf', 'តែបៃតងទឹកដោះគោ'),
+                ('prod_10', 'តែបៃតងត្រជាក់', 'Iced Green Tea', 'cat_tea', 7500, 0, 'fa-leaf', 'តែបៃតងត្រជាក់'),
+                ('prod_11', 'កាប់កាហ្វេ', 'Coffee Cub', 'cat_cub', 8500, 0, 'fa-mug-hot', 'កាប់កាហ្វេឆ្ងាញ់'),
+                ('prod_12', 'កាប់តែ', 'Tea Cub', 'cat_cub', 7500, 0, 'fa-mug-hot', 'កាប់តែឆ្ងាញ់')
             `);
         }
 

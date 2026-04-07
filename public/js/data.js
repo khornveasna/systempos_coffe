@@ -1,6 +1,10 @@
 // ── Default data (localStorage fallback) ──────────────────────────────────────
 
 const defaultData = {
+    categories: [
+        { id: 'coffee', name: 'កាហ្វេ', icon: 'fa-coffee' },
+        { id: 'tea',    name: 'តែបៃតង', icon: 'fa-leaf' }
+    ],
     products: [
         { id: 1, name: 'កាហ្វេស្រស់',      category: 'coffee', price: 8000,  salePrice: 0,     image: '', icon: 'fa-coffee',  description: 'កាហ្វេស្រស់ឆ្ងាញ់',      active: true },
         { id: 2, name: 'កាហ្វេទឹកដោះគោ',  category: 'coffee', price: 10000, salePrice: 0,     image: '', icon: 'fa-coffee',  description: 'កាហ្វេទឹកដោះគោផ្អែម',   active: true },
@@ -20,8 +24,18 @@ const defaultData = {
     settings: { shopName: 'Coffee POS', currency: '៛', taxRate: 0 }
 };
 
-const categoryNames = { all: 'ទាំងអស់', coffee: 'កាហ្វេ', tea: 'តែបៃតង' };
-const categoryIcons = { coffee: 'fa-coffee', tea: 'fa-leaf' };
+let categoryNames = { all: 'ទាំងអស់' };
+let categoryIcons = {};
+
+function syncCategoryLookups(categories = []) {
+    categoryNames = { all: 'ទាំងអស់' };
+    categoryIcons = {};
+
+    categories.forEach(category => {
+        categoryNames[category.id] = category.name;
+        categoryIcons[category.id] = category.icon || 'fa-tag';
+    });
+}
 
 // ── localStorage helpers ───────────────────────────────────────────────────────
 
@@ -39,7 +53,14 @@ function resetData() {
 function getData() {
     const raw = localStorage.getItem('coffeePOSData');
     if (!raw) { initializeData(); return defaultData; }
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+
+    if (!Array.isArray(data.categories)) {
+        data.categories = [...defaultData.categories];
+        saveData(data);
+    }
+
+    return data;
 }
 
 function saveData(data) {
@@ -101,4 +122,37 @@ function parseOrderItems(raw) {
     }
 }
 
+// ── API Sync Functions ────────────────────────────────────────────────────────
+
+async function syncDataFromAPI() {
+    try {
+        const [categoriesRes, productsRes] = await Promise.all([
+            fetch('/api/categories'),
+            fetch('/api/products?active=true')
+        ]);
+
+        const categoriesData = await categoriesRes.json();
+        const productsData = await productsRes.json();
+
+        if (categoriesData.success && productsData.success) {
+            const data = {
+                categories: categoriesData.categories,
+                products: productsData.products,
+                users: defaultData.users,
+                orders: [],
+                settings: defaultData.settings
+            };
+
+            localStorage.setItem('coffeePOSData', JSON.stringify(data));
+            syncCategoryLookups(data.categories);
+            return data;
+        }
+    } catch (error) {
+        console.error('Failed to sync from API:', error);
+    }
+
+    return getData();
+}
+
 initializeData();
+syncCategoryLookups(getData().categories);

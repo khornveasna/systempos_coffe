@@ -20,7 +20,7 @@ CoffeePOS.prototype.renderUsers = async function () {
             return;
         }
 
-        const users = result.users;
+        const { users } = result;
         this.data.users = users;
 
         if (users.length === 0) {
@@ -211,7 +211,14 @@ CoffeePOS.prototype.deleteUser = async function (id) {
         this.showToast('មានតែ Admin ទេដែលអាចលុបអ្នកប្រើប្រាស់!', 'error');
         return;
     }
-    if (!confirm('តើអ្នកចង់លុបអ្នកប្រើប្រាស់នេះទេ?')) return;
+    const confirmed = await this.showConfirmDialog('តើអ្នកចង់លុបអ្នកប្រើប្រាស់នេះទេ?', {
+        title: 'លុបអ្នកប្រើប្រាស់',
+        confirmText: 'លុប',
+        confirmIcon: 'fa-trash',
+        confirmClass: 'danger'
+    });
+
+    if (!confirmed) return;
 
     try {
         const result = await fetch(

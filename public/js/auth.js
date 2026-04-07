@@ -11,6 +11,59 @@ CoffeePOS.prototype.checkAuth = function () {
     }
 };
 
+CoffeePOS.prototype.getPageStorageKey = function () {
+    if (!this.currentUser) return 'coffeePOSLastPage:guest';
+    return `coffeePOSLastPage:${this.currentUser.id || this.currentUser.username || 'user'}`;
+};
+
+CoffeePOS.prototype.getSavedPage = function () {
+    return localStorage.getItem(this.getPageStorageKey()) || 'pos';
+};
+
+CoffeePOS.prototype.getItemsViewStorageKey = function () {
+    if (!this.currentUser) return 'coffeePOSItemsView:guest';
+    return `coffeePOSItemsView:${this.currentUser.id || this.currentUser.username || 'user'}`;
+};
+
+CoffeePOS.prototype.getSavedItemsViewState = function () {
+    try {
+        const raw = localStorage.getItem(this.getItemsViewStorageKey());
+        if (!raw) return { view: 'categories', categoryId: 'all' };
+        const parsed = JSON.parse(raw);
+        return {
+            view: parsed.view === 'items' ? 'items' : 'categories',
+            categoryId: parsed.categoryId || 'all'
+        };
+    } catch {
+        return { view: 'categories', categoryId: 'all' };
+    }
+};
+
+CoffeePOS.prototype.saveItemsViewState = function () {
+    if (!this.currentUser) return;
+    const state = {
+        view: this.currentItemsView === 'items' ? 'items' : 'categories',
+        categoryId: this.currentItemsCategory || 'all'
+    };
+    localStorage.setItem(this.getItemsViewStorageKey(), JSON.stringify(state));
+};
+
+CoffeePOS.prototype.saveCurrentPage = function () {
+    if (!this.currentUser) return;
+    localStorage.setItem(this.getPageStorageKey(), this.currentPage);
+};
+
+CoffeePOS.prototype.getStartPage = function () {
+    const perms = this.currentUser?.permissions || [];
+    const isAdmin = this.currentUser?.role === 'admin';
+    const savedPage = this.getSavedPage();
+
+    const canOpen = page => isAdmin || perms.includes(page);
+    if (canOpen(savedPage)) return savedPage;
+
+    return ['pos', 'items', 'orders', 'reports', 'users'].find(page => canOpen(page)) || 'pos';
+};
+
 CoffeePOS.prototype.displayUserPermissions = function () {
     const permLabel = document.getElementById('userPermissions');
     if (!permLabel) return;
@@ -56,7 +109,15 @@ CoffeePOS.prototype.applyUserPermissions = function () {
 CoffeePOS.prototype.showApp = function () {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('appScreen').classList.remove('hidden');
-    this.navigate('pos');
+    const savedItemsView = typeof this.getSavedItemsViewState === 'function'
+        ? this.getSavedItemsViewState()
+        : { view: 'categories', categoryId: 'all' };
+    this.currentItemsView = savedItemsView.view;
+    this.currentItemsCategory = savedItemsView.categoryId;
+    if (typeof this.renderCategoryControls === 'function') {
+        this.renderCategoryControls();
+    }
+    this.navigate(this.getStartPage());
     this.applyUserPermissions();
     if (this.socket && this.currentUser) {
         this.socket.emit('user-login', this.currentUser);

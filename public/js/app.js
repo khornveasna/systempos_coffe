@@ -7,6 +7,8 @@ class CoffeePOS {
         this.cart         = [];
         this.currentPage  = 'pos';
         this.currentCategory = 'all';
+        this.currentItemsCategory = 'all';
+        this.currentItemsView = 'categories';
         this.currentUser  = null;
         this.editingItem  = null;
         this.editingUser  = null;
@@ -20,7 +22,18 @@ class CoffeePOS {
         this.initSocket();
         this.checkAuth();
         this.bindEvents();
-        if (this.currentUser) this.showApp();
+        if (this.currentUser) {
+            this.syncAndShowApp();
+        }
+    }
+
+    async syncAndShowApp() {
+        try {
+            this.data = await syncDataFromAPI();
+        } catch (error) {
+            console.error('Failed to sync data:', error);
+        }
+        this.showApp();
     }
 
     bindEvents() {
@@ -28,19 +41,75 @@ class CoffeePOS {
         document.getElementById('loginForm').addEventListener('submit', e => { e.preventDefault(); this.login(); });
         document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
 
+        // POS category filter
+        const categoryButtons = document.getElementById('categoryButtons');
+        if (categoryButtons) {
+            categoryButtons.addEventListener('click', event => {
+                const button = event.target.closest('.category-btn');
+                if (!button) return;
+
+                categoryButtons.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                this.currentCategory = button.dataset.category;
+                if (typeof button.scrollIntoView === 'function') {
+                    button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
+                if (typeof this.updateCategoryIndicator === 'function') {
+
+            const itemsCategoryButtons = document.getElementById('itemsCategoryButtons');
+            if (itemsCategoryButtons) {
+                itemsCategoryButtons.addEventListener('click', event => {
+                    const button = event.target.closest('.category-btn');
+                    if (!button) return;
+
+                    itemsCategoryButtons.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    this.currentItemsCategory = button.dataset.category;
+
+                    const filterCategory = document.getElementById('filterCategory');
+                    if (filterCategory) filterCategory.value = this.currentItemsCategory;
+
+                    if (typeof button.scrollIntoView === 'function') {
+                        button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    }
+                    if (typeof this.updateCategoryIndicator === 'function') {
+                        this.updateCategoryIndicator('itemsCategoryButtons');
+                    }
+                    if (typeof this.saveItemsViewState === 'function') {
+                        this.saveItemsViewState();
+                    }
+                    this.renderItems();
+                });
+
+                itemsCategoryButtons.addEventListener('wheel', event => {
+                    if (!event.deltaY) return;
+                    event.preventDefault();
+                    itemsCategoryButtons.scrollLeft += event.deltaY;
+                }, { passive: false });
+            }
+                    this.updateCategoryIndicator();
+                }
+                this.renderProducts();
+            });
+                    this.updateCategoryIndicator('itemsCategoryButtons');
+
+            categoryButtons.addEventListener('wheel', event => {
+                if (!event.deltaY) return;
+                event.preventDefault();
+                categoryButtons.scrollLeft += event.deltaY;
+            }, { passive: false });
+        }
+
+        window.addEventListener('resize', () => {
+            if (typeof this.updateCategoryIndicator === 'function') {
+                this.updateCategoryIndicator();
+                this.updateCategoryIndicator('itemsCategoryButtons');
+            }
+        });
+
         // Navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', e => { e.preventDefault(); this.navigate(item.dataset.page); });
-        });
-
-        // Category filter
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this.currentCategory = btn.dataset.category;
-                this.renderProducts();
-            });
         });
 
         // POS
@@ -66,8 +135,54 @@ class CoffeePOS {
         document.getElementById('newOrderBtn').addEventListener('click', () => this.clearCart());
 
         // Items
+        document.getElementById('addCategoryBtn').addEventListener('click', () => this.openCategoryModal());
         document.getElementById('addItemBtn').addEventListener('click', () => this.openItemModal());
+
+        const itemsCategoryButtons = document.getElementById('itemsCategoryButtons');
+        if (itemsCategoryButtons) {
+            itemsCategoryButtons.addEventListener('click', event => {
+                const button = event.target.closest('.category-btn');
+                if (!button || typeof this.setItemsView !== 'function') return;
+
+                this.setItemsView('items', button.dataset.category || 'all');
+            });
+
+            itemsCategoryButtons.addEventListener('wheel', event => {
+                if (!event.deltaY) return;
+                event.preventDefault();
+                itemsCategoryButtons.scrollLeft += event.deltaY;
+            }, { passive: false });
+        }
+
+        document.querySelectorAll('.items-view-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                if (typeof this.setItemsView === 'function') {
+                    this.setItemsView(button.dataset.itemsView);
+                }
+            });
+        });
+        const itemsCategoriesList = document.getElementById('itemsCategoriesList');
+        if (itemsCategoriesList) {
+            itemsCategoriesList.addEventListener('click', event => {
+                const editButton = event.target.closest('.category-list-edit');
+                if (editButton) {
+                    const { categoryId } = editButton.dataset;
+                    if (typeof this.openCategoryModal === 'function') {
+                        this.openCategoryModal(categoryId);
+                    }
+                    return;
+                }
+
+                const card = event.target.closest('.category-list-card');
+                if (!card) return;
+
+                if (typeof this.setItemsView === 'function') {
+                    this.setItemsView('items', card.dataset.category || 'all');
+                }
+            });
+        }
         document.getElementById('itemForm').addEventListener('submit', e => { e.preventDefault(); this.saveItem(); });
+        document.getElementById('categoryForm').addEventListener('submit', e => { e.preventDefault(); this.saveCategory(); });
         document.getElementById('searchItem').addEventListener('input', () => this.renderItems());
         document.getElementById('filterCategory').addEventListener('change', () => this.renderItems());
         const uploadPlaceholder = document.getElementById('uploadPlaceholder');
@@ -105,6 +220,16 @@ class CoffeePOS {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', e => { if (e.target === modal) this.closeAllModals(); });
         });
+
+        const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
+        if (confirmModalConfirmBtn) {
+            confirmModalConfirmBtn.addEventListener('click', () => {
+                if (typeof this.resolveConfirmDialog === 'function') {
+                    this.resolveConfirmDialog(true);
+                }
+                this.closeAllModals();
+            });
+        }
 
         // Mobile sidebar toggle
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
@@ -160,16 +285,34 @@ class CoffeePOS {
         document.getElementById(page + 'Page').classList.add('active');
 
         switch (page) {
-            case 'pos':     this.renderProducts();  break;
-            case 'items':   this.renderItems();     break;
+            case 'pos':
+                if (typeof this.renderCategoryControls === 'function') this.renderCategoryControls();
+                this.renderProducts();
+                break;
+            case 'items':
+                if (typeof this.renderCategoryControls === 'function') this.renderCategoryControls();
+                if (typeof this.getSavedItemsViewState === 'function') {
+                    const savedItemsView = this.getSavedItemsViewState();
+                    this.currentItemsView = savedItemsView.view;
+                    this.currentItemsCategory = savedItemsView.categoryId;
+                }
+                this.renderItems();
+                break;
             case 'orders':  this.renderOrders();    break;
             case 'reports': this.generateReports(); break;
             case 'users':   this.renderUsers();     break;
+        }
+
+        if (typeof this.saveCurrentPage === 'function') {
+            this.saveCurrentPage();
         }
     }
 
     closeAllModals() {
         document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        if (typeof this.resolveConfirmDialog === 'function' && this.pendingConfirmDialog) {
+            this.resolveConfirmDialog(false);
+        }
         this.viewingOrder = null;
     }
 
@@ -214,10 +357,60 @@ class CoffeePOS {
     }
 
     showToast(message, type = 'success') {
-        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle' };
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation' };
+        const titles = { success: 'ជោគជ័យ', error: 'មានបញ្ហា', warning: 'ព្រមាន' };
         const toast = document.getElementById('toast');
-        toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
+        if (!toast) return;
+
+        clearTimeout(this.toastTimer);
         toast.className = `toast ${type}`;
-        setTimeout(() => toast.classList.add('hidden'), 3000);
+        toast.innerHTML = `
+            <div class="toast-icon"><i class="fas ${icons[type]}"></i></div>
+            <div class="toast-content">
+                <strong class="toast-title">${titles[type]}</strong>
+                <span class="toast-message">${message}</span>
+            </div>
+        `;
+
+        // Restart the entrance animation when the toast content changes.
+        toast.classList.remove('show');
+        void toast.offsetWidth;
+        toast.classList.add('show');
+        this.toastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+            toast.classList.add('hidden');
+        }, 3000);
+    }
+
+    showConfirmDialog(message, options = {}) {
+        const modal = document.getElementById('confirmModal');
+        const title = document.getElementById('confirmModalTitle');
+        const body = document.getElementById('confirmModalMessage');
+        const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+
+        if (!modal || !title || !body || !confirmBtn) {
+            return Promise.resolve(window.confirm(message));
+        }
+
+        if (this.pendingConfirmDialog) {
+            this.resolveConfirmDialog(false);
+        }
+
+        title.innerHTML = `<i class="fas ${options.icon || 'fa-triangle-exclamation'}"></i> ${options.title || 'បញ្ជាក់សកម្មភាព'}`;
+        body.textContent = message;
+        confirmBtn.innerHTML = `<i class="fas ${options.confirmIcon || 'fa-check'}"></i> ${options.confirmText || 'បញ្ជាក់'}`;
+        confirmBtn.className = `btn-confirm ${options.confirmClass || ''}`.trim();
+
+        modal.classList.add('active');
+
+        return new Promise(resolve => {
+            this.pendingConfirmDialog = resolve;
+            this.resolveConfirmDialog = result => {
+                const pending = this.pendingConfirmDialog;
+                this.pendingConfirmDialog = null;
+                this.resolveConfirmDialog = null;
+                if (pending) pending(result);
+            };
+        });
     }
 }

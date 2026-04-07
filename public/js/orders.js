@@ -18,7 +18,7 @@ CoffeePOS.prototype.renderOrders = async function () {
             return;
         }
 
-        const orders = result.orders;
+        const { orders = [] } = result;
         this.data.orders = orders;
 
         if (orders.length === 0) {
@@ -32,15 +32,15 @@ CoffeePOS.prototype.renderOrders = async function () {
             const itemNames = items.map(i => i.name).join(', ');
             return `
                 <tr>
-                    <td>${index + 1}</td>
-                    <td>${order.receiptNumber}</td>
-                    <td>${formatDate(order.date)}</td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${itemNames}</td>
-                    <td>${itemCount}</td>
-                    <td>${formatCurrency(order.total)}</td>
-                    <td>${order.discountAmount > 0 ? formatCurrency(order.discountAmount) : '-'}</td>
-                    <td>${order.userName}</td>
-                    <td><button class="btn-view-order" onclick="pos.viewOrder('${order.id}')"><i class="fas fa-eye"></i></button></td>
+                    <td data-label="ល.រ">${index + 1}</td>
+                    <td data-label="លេខវិក័យបត្រ">${order.receiptNumber}</td>
+                    <td data-label="កាលបរិច្ឆេទ">${formatDate(order.date)}</td>
+                    <td data-label="មុខម្ហូប" class="order-items-cell">${itemNames}</td>
+                    <td data-label="ចំនួន">${itemCount}</td>
+                    <td data-label="សរុប">${formatCurrency(order.total)}</td>
+                    <td data-label="បញ្ចុះ">${order.discountAmount > 0 ? formatCurrency(order.discountAmount) : '-'}</td>
+                    <td data-label="អ្នកបម្រើ">${order.userName}</td>
+                    <td data-label="សកម្មភាព"><button class="btn-view-order" onclick="pos.viewOrder('${order.id}')"><i class="fas fa-eye"></i></button></td>
                 </tr>`;
         }).join('');
     } catch (error) {
@@ -106,7 +106,7 @@ CoffeePOS.prototype.printOrder = function () {
 };
 
 CoffeePOS.prototype.exportOrders = function () {
-    const orders = this.data.orders;
+    const { orders } = this.data;
     if (orders.length === 0) {
         this.showToast('គ្មានទិន្នន័យសម្រាប់ Export', 'warning');
         return;

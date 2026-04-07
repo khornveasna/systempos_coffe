@@ -15,7 +15,7 @@ class ProductModel {
 
     findById(id) {
         return this.db.prepare(`
-            SELECT p.*, c.name as category_name, c.name_km as category_name_km
+            SELECT p.*, p.category_id as category, c.name as category_name, c.name_km as category_name_km
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
             WHERE p.id = ?
@@ -24,7 +24,7 @@ class ProductModel {
 
     findAll(filters = {}) {
         let query = `
-            SELECT p.*, c.name as category_name, c.name_km as category_name_km
+            SELECT p.*, p.category_id as category, c.name as category_name, c.name_km as category_name_km
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
             WHERE 1=1

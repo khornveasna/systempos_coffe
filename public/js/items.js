@@ -1,9 +1,239 @@
 // Items (product) management
 
+CoffeePOS.prototype.renderCategoryControls = function () {
+    const categories = this.data.categories || [];
+    const categoryButtons = document.getElementById('categoryButtons');
+    const itemsCategoryButtons = document.getElementById('itemsCategoryButtons');
+    const itemCategory = document.getElementById('itemCategory');
+    const filterCategory = document.getElementById('filterCategory');
+
+    const renderMenu = (container, activeCategory) => {
+        if (!container) return;
+
+        container.innerHTML = [
+            `<span class="category-indicator" aria-hidden="true"></span>`,
+            `<button class="category-btn ${activeCategory === 'all' ? 'active' : ''}" data-category="all">
+                <i class="fas fa-th"></i> ទាំងអស់
+            </button>
+        `].concat(categories.map(category => `
+            <button class="category-btn ${activeCategory === category.id ? 'active' : ''}" data-category="${category.id}">
+                <i class="fas ${category.icon || 'fa-tag'}"></i> ${category.name}
+            </button>
+        `)).join('');
+
+        this.updateCategoryIndicator(container.id);
+    };
+
+    renderMenu(categoryButtons, this.currentCategory || 'all');
+    renderMenu(itemsCategoryButtons, this.currentItemsCategory || 'all');
+
+    if (itemCategory) {
+        itemCategory.innerHTML = [`<option value="">ជ្រើសរើសប្រភេទ</option>`].concat(categories.map(category => `
+            <option value="${category.id}">${category.name}</option>
+        `)).join('');
+    }
+
+    if (filterCategory) {
+        filterCategory.innerHTML = [`<option value="all">គ្រប់ប្រភេទ</option>`].concat(categories.map(category => `
+            <option value="${category.id}">${category.name}</option>
+        `)).join('');
+        filterCategory.value = this.currentItemsCategory || 'all';
+    }
+};
+
+CoffeePOS.prototype.renderCategoryOverview = function () {
+    const list = document.getElementById('itemsCategoriesList');
+    if (!list) return;
+
+    const categories = this.data.categories || [];
+    const totalCount = this.data.products.length;
+
+    if (!categories.length) {
+        list.innerHTML = `
+            <div class="empty-state empty-state-card">
+                <i class="fas fa-tags"></i>
+                <p>មិនទាន់មានប្រភេទ</p>
+            </div>`;
+        return;
+    }
+
+    const countByCategory = categories.reduce((map, category) => {
+        map[category.id] = this.data.products.filter(product => product.category === category.id).length;
+        return map;
+    }, {});
+
+    list.innerHTML = [
+        `<div class="category-list-card ${this.currentItemsCategory === 'all' ? 'active' : ''}" data-category="all" role="button" tabindex="0">`
+        + `<div class="category-list-icon"><i class="fas fa-th"></i></div>`
+        + `<div class="category-list-body"><strong>ទាំងអស់</strong><span>${totalCount} មុខម្ហូប</span></div>`
+        + `<i class="fas fa-chevron-right category-list-chevron"></i></div>`
+    ].concat(categories.map(category => `
+        <div class="category-list-card ${this.currentItemsCategory === category.id ? 'active' : ''}" data-category="${category.id}" role="button" tabindex="0">
+            <div class="category-list-icon"><i class="fas ${category.icon || 'fa-tag'}"></i></div>
+            <div class="category-list-body">
+                <strong>${category.name}</strong>
+                <span>${countByCategory[category.id] || 0} មុខម្ហូប</span>
+            </div>
+            <button type="button" class="category-list-edit" data-action="edit-category" data-category-id="${category.id}" aria-label="កែសម្រួលប្រភេទ ${category.name}">
+                <i class="fas fa-pen"></i>
+            </button>
+            <i class="fas fa-chevron-right category-list-chevron"></i>
+        </div>
+    `)).join('');
+};
+
+CoffeePOS.prototype.updateCategoryIndicator = function (containerId = 'categoryButtons') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const indicator = container.querySelector('.category-indicator');
+    const activeButton = container.querySelector('.category-btn.active');
+    if (!indicator || !activeButton) return;
+
+    indicator.style.width = `${activeButton.offsetWidth}px`;
+    indicator.style.height = `${activeButton.offsetHeight}px`;
+    indicator.style.transform = `translate(${activeButton.offsetLeft}px, ${activeButton.offsetTop}px)`;
+};
+
+CoffeePOS.prototype.openCategoryModal = function (categoryId = '') {
+    const categories = this.data.categories || [];
+    const category = categoryId ? categories.find(item => String(item.id) === String(categoryId)) : null;
+
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryId').value = category ? category.id : '';
+    document.getElementById('categoryModalTitle').innerHTML = category
+        ? '<i class="fas fa-pen"></i> កែសម្រួលប្រភេទ'
+        : '<i class="fas fa-tags"></i> បន្ថែមប្រភេទ';
+    document.getElementById('categoryName').value = category ? category.name : '';
+    document.getElementById('categoryIcon').value = category ? category.icon || 'fa-tag' : 'fa-tag';
+    document.getElementById('categoryModal').classList.add('active');
+};
+
+CoffeePOS.prototype.saveCategory = function () {
+    const categoryId = document.getElementById('categoryId').value;
+    const name = document.getElementById('categoryName').value.trim();
+    const icon = document.getElementById('categoryIcon').value.trim() || 'fa-tag';
+
+    if (!name) {
+        this.showToast('សូមបញ្ចូលឈ្មោះប្រភេទ!', 'error');
+        return;
+    }
+
+    this.data.categories = this.data.categories || [];
+    if (categoryId) {
+        const category = this.data.categories.find(item => String(item.id) === String(categoryId));
+        if (category) {
+            category.name = name;
+            category.icon = icon;
+        }
+        this.showToast('បានកែសម្រួលប្រភេទ!', 'success');
+    } else {
+        const id = `cat-${generateId()}`;
+        this.data.categories.push({ id, name, icon });
+        this.showToast('បានបន្ថែមប្រភេទថ្មី!', 'success');
+    }
+
+    syncCategoryLookups(this.data.categories);
+    saveData(this.data);
+    this.renderCategoryControls();
+    this.closeAllModals();
+    if (this.currentPage === 'items') this.renderItems();
+    if (this.currentPage === 'pos') this.renderProducts();
+};
+
+CoffeePOS.prototype.setItemsView = function (view, categoryId = 'all') {
+    this.currentItemsView = view === 'items' ? 'items' : 'categories';
+
+    if (this.currentItemsView === 'items') {
+        this.currentItemsCategory = categoryId || 'all';
+    } else {
+        this.currentItemsCategory = 'all';
+    }
+
+    const filterCategory = document.getElementById('filterCategory');
+    if (filterCategory) {
+        filterCategory.value = this.currentItemsView === 'items' ? this.currentItemsCategory : 'all';
+    }
+
+    if (typeof this.syncItemsCategoryMenu === 'function') {
+        this.syncItemsCategoryMenu();
+    }
+
+    if (typeof this.saveItemsViewState === 'function') {
+        this.saveItemsViewState();
+    }
+
+    this.renderItems();
+};
+
+CoffeePOS.prototype.syncItemsViewIndicator = function () {
+    const switcher = document.querySelector('#itemsPage .items-view-switch');
+    if (!switcher) return;
+
+    const indicator = switcher.querySelector('.items-view-indicator');
+    const activeButton = switcher.querySelector('.items-view-btn.active');
+    if (!indicator || !activeButton) return;
+
+    indicator.style.width = `${activeButton.offsetWidth}px`;
+    indicator.style.height = `${activeButton.offsetHeight}px`;
+    indicator.style.transform = `translate(${activeButton.offsetLeft}px, ${activeButton.offsetTop}px)`;
+};
+
+CoffeePOS.prototype.syncItemsCategoryMenu = function () {
+    const container = document.getElementById('itemsCategoryButtons');
+    if (!container) return;
+
+    const buttons = container.querySelectorAll('.category-btn');
+    buttons.forEach(button => {
+        const isActive = button.dataset.category === this.currentItemsCategory;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+
+        if (isActive && typeof button.scrollIntoView === 'function') {
+            button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    });
+
+    if (typeof this.updateCategoryIndicator === 'function') {
+        this.updateCategoryIndicator('itemsCategoryButtons');
+    }
+};
+
 CoffeePOS.prototype.renderItems = function () {
+    const categoriesPanel = document.getElementById('itemsCategoriesPanel');
+    const itemsPanel = document.getElementById('itemsItemsPanel');
+    const viewButtons = document.querySelectorAll('.items-view-btn');
+
+    viewButtons.forEach(button => {
+        const isActive = button.dataset.itemsView === this.currentItemsView;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    if (typeof this.syncItemsViewIndicator === 'function') {
+        this.syncItemsViewIndicator();
+    }
+
+    if (categoriesPanel) categoriesPanel.classList.toggle('hidden', this.currentItemsView !== 'categories');
+    if (itemsPanel) itemsPanel.classList.toggle('hidden', this.currentItemsView === 'categories');
+
+    if (this.currentItemsView === 'items' && typeof this.syncItemsCategoryMenu === 'function') {
+        this.syncItemsCategoryMenu();
+    }
+
+    if (this.currentItemsView === 'categories') {
+        if (typeof this.saveItemsViewState === 'function') {
+            this.saveItemsViewState();
+        }
+        this.renderCategoryOverview();
+        return;
+    }
+
     const grid        = document.getElementById('itemsGrid');
-    const searchTerm  = document.getElementById('searchItem').value.toLowerCase();
-    const filterCat   = document.getElementById('filterCategory').value;
+    const searchInput  = document.getElementById('searchItem');
+    const filterSelect = document.getElementById('filterCategory');
+    const searchTerm   = searchInput ? searchInput.value.toLowerCase() : '';
+    const filterCat    = filterSelect ? filterSelect.value : 'all';
     let   items       = this.data.products;
 
     if (filterCat !== 'all') items = items.filter(i => i.category === filterCat);
@@ -24,7 +254,7 @@ CoffeePOS.prototype.renderItems = function () {
             <div class="item-card">
                 ${item.image ? `<img src="${item.image}" alt="${item.name}" class="item-card-image">` : `<div class="item-card-icon"><i class="fas ${item.icon}"></i></div>`}
                 <div class="item-card-body">
-                    <span class="category-tag">${categoryNames[item.category]}</span>
+                    <span class="category-tag">${categoryNames[item.category] || item.category || '-'}</span>
                     <h3>${item.name}</h3>
                     <div class="price-row">
                         ${hasSale
@@ -107,23 +337,42 @@ CoffeePOS.prototype.saveItem = function () {
     const image       = document.getElementById('itemImage').value;
 
     if (id) {
-        const item = this.data.products.find(p => p.id === parseInt(id));
+        const item = this.data.products.find(p => String(p.id) === String(id));
         if (item) {
-            Object.assign(item, { name, category, price, salePrice, description, active, image });
+            const icon = image ? (item.icon || categoryIcons[category] || 'fa-utensils') : (categoryIcons[category] || item.icon || 'fa-utensils');
+            Object.assign(item, { name, category, price, salePrice, description, active, image, icon });
             this.showToast('បានកែសម្រួលមុខម្ហូប!', 'success');
         }
     } else {
-        this.data.products.push({ id: generateId(), name, category, price, salePrice, description, active, image, icon: categoryIcons[category] || 'fa-utensils' });
+        this.data.products.push({
+            id: generateId(),
+            name,
+            category,
+            price,
+            salePrice,
+            description,
+            active,
+            image,
+            icon: categoryIcons[category] || 'fa-utensils'
+        });
         this.showToast('បានបន្ថែមមុខម្ហូប!', 'success');
     }
 
     saveData(this.data);
+    syncCategoryLookups(this.data.categories || []);
     this.closeAllModals();
     this.renderItems();
 };
 
-CoffeePOS.prototype.deleteItem = function (id) {
-    if (confirm('តើអ្នកចង់លុបមុខម្ហូបនេះទេ?')) {
+CoffeePOS.prototype.deleteItem = async function (id) {
+    const confirmed = await this.showConfirmDialog('តើអ្នកចង់លុបមុខម្ហូបនេះទេ?', {
+        title: 'លុបមុខម្ហូប',
+        confirmText: 'លុប',
+        confirmIcon: 'fa-trash',
+        confirmClass: 'danger'
+    });
+
+    if (confirmed) {
         this.data.products = this.data.products.filter(p => String(p.id) !== String(id));
         saveData(this.data);
         this.renderItems();

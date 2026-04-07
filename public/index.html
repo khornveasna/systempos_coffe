@@ -117,17 +117,7 @@
                             <input type="text" id="searchProduct" placeholder="ស្វែងរកមុខម្ហូប...">
                         </div>
 
-                        <div class="categories">
-                            <button class="category-btn active" data-category="all">
-                                <i class="fas fa-th"></i> ទាំងអស់
-                            </button>
-                            <button class="category-btn" data-category="coffee">
-                                <i class="fas fa-coffee"></i> កាហ្វេ
-                            </button>
-                            <button class="category-btn" data-category="tea">
-                                <i class="fas fa-leaf"></i> តែបៃតង
-                            </button>
-                        </div>
+                        <div class="categories" id="categoryButtons"></div>
 
                         <div class="products-grid" id="productsGrid">
                             <!-- Products will be loaded here -->
@@ -188,27 +178,50 @@
                 <header class="page-header">
                     <h1><i class="fas fa-box"></i> គ្រប់គ្រងមុខម្ហូប</h1>
                     <div class="header-actions">
+                        <button type="button" id="addCategoryBtn" class="btn-action-primary">
+                            <i class="fas fa-tags"></i> បន្ថែមប្រភេទ
+                        </button>
                         <button id="addItemBtn" class="btn-action">
                             <i class="fas fa-plus"></i> បន្ថែមមុខម្ហូប
                         </button>
                     </div>
                 </header>
 
+                <div class="items-view-switch" role="tablist" aria-label="ប្ដូរទិដ្ឋភាព">
+                    <span class="items-view-indicator" aria-hidden="true"></span>
+                    <button type="button" class="items-view-btn active" data-items-view="categories" aria-selected="true">
+                        <i class="fas fa-tags"></i> ប្រភេទ
+                    </button>
+                    <button type="button" class="items-view-btn" data-items-view="items" aria-selected="false">
+                        <i class="fas fa-utensils"></i> មុខម្ហូប
+                    </button>
+                </div>
+
                 <div class="items-container">
-                    <div class="search-filter">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="searchItem" placeholder="ស្វែងរកមុខម្ហូប...">
+                    <div class="items-panel hidden" id="itemsCategoriesPanel">
+                        <div class="category-list-grid" id="itemsCategoriesList">
+                            <!-- Categories will be loaded here -->
                         </div>
-                        <select id="filterCategory" class="filter-select">
-                            <option value="all">គ្រប់ប្រភេទ</option>
-                            <option value="coffee">កាហ្វេ</option>
-                            <option value="tea">តែបៃតង</option>
-                        </select>
                     </div>
 
-                    <div class="items-grid" id="itemsGrid">
-                        <!-- Items will be loaded here -->
+                    <div class="items-panel" id="itemsItemsPanel">
+                        <div class="search-filter">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchItem" placeholder="ស្វែងរកមុខម្ហូប...">
+                            </div>
+                            <select id="filterCategory" class="filter-select">
+                                <option value="all">គ្រប់ប្រភេទ</option>
+                                <option value="coffee">កាហ្វេ</option>
+                                <option value="tea">តែបៃតង</option>
+                            </select>
+                        </div>
+
+                        <div class="categories" id="itemsCategoryButtons"></div>
+
+                        <div class="items-grid" id="itemsGrid">
+                            <!-- Items will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -387,7 +400,7 @@
         <div class="modal-content checkout-modal">
             <div class="modal-header">
                 <h2><i class="fas fa-money-bill-wave"></i> ទូទាត់ប្រាក់</h2>
-                <button class="modal-close">&times;</button>
+                <button type="button" class="modal-close" aria-label="Close category modal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="checkout-content">
@@ -473,7 +486,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="itemModalTitle"><i class="fas fa-plus"></i> បន្ថែមមុខម្ហូប</h2>
-                <button class="modal-close">&times;</button>
+                <button type="button" class="modal-close" aria-label="Close category modal">&times;</button>
             </div>
             <form id="itemForm">
                 <div class="modal-body">
@@ -530,6 +543,38 @@
                             <input type="checkbox" id="itemActive" checked>
                             <label for="itemActive">ដាក់លក់</label>
                         </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel modal-close">បោះបង់</button>
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save"></i> រក្សាទុក
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="categoryModalTitle"><i class="fas fa-tags"></i> បន្ថែមប្រភេទ</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="categoryForm">
+                <div class="modal-body">
+                    <input type="hidden" id="categoryId">
+
+                    <div class="form-group">
+                        <label>ឈ្មោះប្រភេទ *</label>
+                        <input type="text" id="categoryName" required placeholder="បញ្ចូលឈ្មោះប្រភេទ">
+                    </div>
+
+                    <div class="form-group">
+                        <label>រូបតំណាង Font Awesome</label>
+                        <input type="text" id="categoryIcon" placeholder="fa-mug-hot">
+                        <small>ឧទាហរណ៍: fa-mug-hot, fa-cookie-bite, fa-ice-cream</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -634,6 +679,30 @@
         </div>
     </div>
 
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content confirm-modal">
+            <div class="modal-header">
+                <h2 id="confirmModalTitle"><i class="fas fa-triangle-exclamation"></i> បញ្ជាក់សកម្មភាព</h2>
+                <button type="button" class="modal-close" aria-label="Close confirmation dialog">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-box">
+                    <div class="confirm-icon">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <p id="confirmModalMessage">តើអ្នកចង់បន្តសកម្មភាពនេះទេ?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel modal-close">បោះបង់</button>
+                <button type="button" id="confirmModalConfirmBtn" class="btn-confirm">
+                    <i class="fas fa-check"></i> បញ្ជាក់
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
@@ -650,6 +719,6 @@
     <script src="/js/orders.js"></script>
     <script src="/js/reports.js"></script>
     <script src="/js/users.js"></script>
-    <script>const pos = new CoffeePOS();</script>
+    <script>var pos = window.pos = new CoffeePOS();</script>
 </body>
 </html>
