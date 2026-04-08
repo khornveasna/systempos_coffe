@@ -15,16 +15,42 @@ class CoffeePOS {
         this.viewingOrder = null;
         this.socket       = null;
         this.onlineUsers  = new Map();
+        this.settingsModule = null;
         this.init();
     }
 
     init() {
+        // Initialize settings module to load logo on startup
+        if (typeof SettingsModule !== 'undefined') {
+            this.settingsModule = new SettingsModule(this);
+        }
+        
         this.initSocket();
         this.checkAuth();
-        this.bindEvents();
-        if (this.currentUser) {
-            this.syncAndShowApp();
+        
+        // Double-check localStorage for saved session
+        if (!this.currentUser) {
+            try {
+                const rawUser = localStorage.getItem('coffeePOSUser');
+                if (rawUser) {
+                    this.currentUser = JSON.parse(rawUser);
+                }
+            } catch (e) {
+                localStorage.removeItem('coffeePOSUser');
+            }
         }
+        
+        // Show appropriate screen based on authentication
+        if (this.currentUser) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            this.syncAndShowApp();
+        } else {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('appScreen').classList.add('hidden');
+        }
+        
+        this.bindEvents();
     }
 
     async syncAndShowApp() {
@@ -191,7 +217,7 @@ class CoffeePOS {
         }
 
         // Users
-        document.getElementById('addUserBtn').addEventListener('click', () => this.openUserModal());
+        document.getElementById('addUserBtn').addEventListener('click', () => this.openUserModal().catch(console.error));
         document.getElementById('userForm').addEventListener('submit', e => { e.preventDefault(); this.saveUser(); });
 
         // Orders
@@ -214,12 +240,35 @@ class CoffeePOS {
         document.getElementById('customStartDate').addEventListener('change', () => this.generateReports());
         document.getElementById('customEndDate').addEventListener('change', () => this.generateReports());
 
-        // Modals
+        // Modals — close only the specific modal that was triggered, not all
         document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', e => { e.preventDefault(); this.closeAllModals(); });
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                const parentModal = btn.closest('.modal');
+                if (parentModal) {
+                    parentModal.classList.remove('active');
+                    // If dismissing the confirm dialog, cancel the pending action
+                    if (parentModal.id === 'confirmModal' &&
+                        typeof this.resolveConfirmDialog === 'function') {
+                        this.resolveConfirmDialog(false);
+                    }
+                } else {
+                    this.closeAllModals();
+                }
+            });
         });
         document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', e => { if (e.target === modal) this.closeAllModals(); });
+            modal.addEventListener('click', e => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    // If dismissing the confirm dialog via backdrop, cancel the pending action
+                    if (modal.id === 'confirmModal' &&
+                        typeof this.resolveConfirmDialog === 'function') {
+                        this.resolveConfirmDialog(false);
+                    }
+                }
+            });
         });
 
         const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
@@ -302,6 +351,7 @@ class CoffeePOS {
             case 'orders':  this.renderOrders();    break;
             case 'reports': this.generateReports(); break;
             case 'users':   this.renderUsers();     break;
+            case 'settings': if (this.settingsModule) this.settingsModule.loadSettings(); break;
         }
 
         if (typeof this.saveCurrentPage === 'function') {

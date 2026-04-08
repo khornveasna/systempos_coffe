@@ -18,6 +18,7 @@ yarn.lock
 # *.db-wal
 # *.sqlite
 # *.sqlite3
+coffee_pos.db
 
 # Logs
 logs/
@@ -72,3 +73,4 @@ tests/
 # Script backups
 *-backup.*
 *.bak.*
+data/coffee_pos.db

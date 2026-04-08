@@ -109,7 +109,7 @@ CoffeePOS.prototype.openCategoryModal = function (categoryId = '') {
     document.getElementById('categoryModal').classList.add('active');
 };
 
-CoffeePOS.prototype.saveCategory = function () {
+CoffeePOS.prototype.saveCategory = async function () {
     const categoryId = document.getElementById('categoryId').value;
     const name = document.getElementById('categoryName').value.trim();
     const icon = document.getElementById('categoryIcon').value.trim() || 'fa-tag';
@@ -119,26 +119,46 @@ CoffeePOS.prototype.saveCategory = function () {
         return;
     }
 
-    this.data.categories = this.data.categories || [];
-    if (categoryId) {
-        const category = this.data.categories.find(item => String(item.id) === String(categoryId));
-        if (category) {
-            category.name = name;
-            category.icon = icon;
+    try {
+        let result;
+        if (categoryId) {
+            const res = await fetch(`/api/categories/${categoryId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, name_km: name, icon })
+            });
+            result = await res.json();
+        } else {
+            const res = await fetch('/api/categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, name_km: name, icon })
+            });
+            result = await res.json();
         }
-        this.showToast('បានកែសម្រួលប្រភេទ!', 'success');
-    } else {
-        const id = `cat-${generateId()}`;
-        this.data.categories.push({ id, name, icon });
-        this.showToast('បានបន្ថែមប្រភេទថ្មី!', 'success');
-    }
 
-    syncCategoryLookups(this.data.categories);
-    saveData(this.data);
-    this.renderCategoryControls();
-    this.closeAllModals();
-    if (this.currentPage === 'items') this.renderItems();
-    if (this.currentPage === 'pos') this.renderProducts();
+        if (!result.success) {
+            this.showToast(result.message || 'មិនអាចរក្សាទុកប្រភេទបានទេ!', 'error');
+            return;
+        }
+
+        // Refresh categories from API
+        const catRes = await fetch('/api/categories').then(r => r.json());
+        if (catRes.success) {
+            this.data.categories = catRes.categories;
+            saveData(this.data);
+        }
+
+        syncCategoryLookups(this.data.categories);
+        this.renderCategoryControls();
+        this.closeAllModals();
+        if (this.currentPage === 'items') this.renderItems();
+        if (this.currentPage === 'pos') this.renderProducts();
+        this.showToast(categoryId ? 'បានកែសម្រួលប្រភេទ!' : 'បានបន្ថែមប្រភេទថ្មី!', 'success');
+    } catch (error) {
+        console.error('Save category error:', error);
+        this.showToast('កំហុសក្នុងការរក្សាទុក: ' + error.message, 'error');
+    }
 };
 
 CoffeePOS.prototype.setItemsView = function (view, categoryId = 'all') {
@@ -326,42 +346,70 @@ CoffeePOS.prototype.removeImage = function () {
     document.getElementById('uploadPlaceholder').style.display = 'block';
 };
 
-CoffeePOS.prototype.saveItem = function () {
+CoffeePOS.prototype.saveItem = async function () {
     const id          = document.getElementById('itemId').value;
-    const name        = document.getElementById('itemName').value;
+    const name        = document.getElementById('itemName').value.trim();
     const category    = document.getElementById('itemCategory').value;
     const price       = parseFloat(document.getElementById('itemPrice').value);
     const salePrice   = parseFloat(document.getElementById('itemSalePrice').value) || 0;
     const description = document.getElementById('itemDescription').value;
     const active      = document.getElementById('itemActive').checked;
     const image       = document.getElementById('itemImage').value;
+    const icon        = categoryIcons[category] || 'fa-utensils';
 
-    if (id) {
-        const item = this.data.products.find(p => String(p.id) === String(id));
-        if (item) {
-            const icon = image ? (item.icon || categoryIcons[category] || 'fa-utensils') : (categoryIcons[category] || item.icon || 'fa-utensils');
-            Object.assign(item, { name, category, price, salePrice, description, active, image, icon });
-            this.showToast('បានកែសម្រួលមុខម្ហូប!', 'success');
-        }
-    } else {
-        this.data.products.push({
-            id: generateId(),
-            name,
-            category,
-            price,
-            salePrice,
-            description,
-            active,
-            image,
-            icon: categoryIcons[category] || 'fa-utensils'
-        });
-        this.showToast('បានបន្ថែមមុខម្ហូប!', 'success');
+    if (!name || isNaN(price)) {
+        this.showToast('សូមបញ្ចូលឈ្មោះ និងតម្លៃ!', 'error');
+        return;
     }
 
-    saveData(this.data);
-    syncCategoryLookups(this.data.categories || []);
-    this.closeAllModals();
-    this.renderItems();
+    try {
+        let result;
+        if (id) {
+            const existing = this.data.products.find(p => String(p.id) === String(id));
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name, name_km: name,
+                    category_id: category,
+                    price, salePrice, description, active, image,
+                    icon: image ? (existing?.icon || icon) : icon
+                })
+            });
+            result = await res.json();
+        } else {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name, name_km: name,
+                    category_id: category,
+                    price, salePrice, description, active, image, icon
+                })
+            });
+            result = await res.json();
+        }
+
+        if (!result.success) {
+            this.showToast(result.message || 'មិនអាចរក្សាទុកមុខម្ហូបបានទេ!', 'error');
+            return;
+        }
+
+        // Refresh products from API
+        const prodRes = await fetch('/api/products').then(r => r.json());
+        if (prodRes.success) {
+            this.data.products = prodRes.products;
+            saveData(this.data);
+        }
+
+        syncCategoryLookups(this.data.categories || []);
+        this.closeAllModals();
+        this.renderItems();
+        this.showToast(id ? 'បានកែសម្រួលមុខម្ហូប!' : 'បានបន្ថែមមុខម្ហូប!', 'success');
+    } catch (error) {
+        console.error('Save item error:', error);
+        this.showToast('កំហុសក្នុងការរក្សាទុក: ' + error.message, 'error');
+    }
 };
 
 CoffeePOS.prototype.deleteItem = async function (id) {
@@ -372,10 +420,23 @@ CoffeePOS.prototype.deleteItem = async function (id) {
         confirmClass: 'danger'
     });
 
-    if (confirmed) {
+    if (!confirmed) return;
+
+    try {
+        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+
+        if (!result.success) {
+            this.showToast(result.message || 'មិនអាចលុបមុខម្ហូបបានទេ!', 'error');
+            return;
+        }
+
         this.data.products = this.data.products.filter(p => String(p.id) !== String(id));
         saveData(this.data);
         this.renderItems();
         this.showToast('បានលុបមុខម្ហូប!', 'success');
+    } catch (error) {
+        console.error('Delete item error:', error);
+        this.showToast('កំហុសក្នុងការលុប: ' + error.message, 'error');
     }
 };

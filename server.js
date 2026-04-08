@@ -22,6 +22,7 @@ const orderRoutes = require('./src/routes/orders');
 const categoryRoutes = require('./src/routes/categories');
 const reportRoutes = require('./src/routes/reports');
 const settingsRoutes = require('./src/routes/settings');
+const roleRoutes = require('./src/routes/roles');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -87,6 +88,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/roles', roleRoutes);
 
 app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/')) {

@@ -2,6 +2,7 @@
 
 CoffeePOS.prototype.checkAuth = function () {
     this.currentUser = getCurrentUser();
+    
     if (this.currentUser) {
         document.getElementById('currentUser').textContent = this.currentUser.fullname;
         if (this.currentUser.role === 'admin') {
@@ -109,6 +110,7 @@ CoffeePOS.prototype.applyUserPermissions = function () {
 CoffeePOS.prototype.showApp = function () {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('appScreen').classList.remove('hidden');
+    
     const savedItemsView = typeof this.getSavedItemsViewState === 'function'
         ? this.getSavedItemsViewState()
         : { view: 'categories', categoryId: 'all' };

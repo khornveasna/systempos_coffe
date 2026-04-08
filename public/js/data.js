@@ -68,8 +68,13 @@ function saveData(data) {
 }
 
 function getCurrentUser() {
-    const raw = localStorage.getItem('coffeePOSUser');
-    return raw ? JSON.parse(raw) : null;
+    try {
+        const raw = localStorage.getItem('coffeePOSUser');
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        localStorage.removeItem('coffeePOSUser');
+        return null;
+    }
 }
 
 function setCurrentUser(user) {

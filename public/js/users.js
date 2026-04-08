@@ -7,7 +7,12 @@ CoffeePOS.prototype.renderUsers = async function () {
     }
 
     const tbody = document.getElementById('usersTableBody');
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;">កំពុងទាញយកទិន្នន័យ...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;">កំពុងទាញយកទិន្នន័យ...</td></tr>';
+
+    // Ensure roles and permissions are loaded from DB before rendering
+    if (!this.data.roles || !this.data.roles.length) {
+        await this.loadRolesAndPermissions();
+    }
 
     try {
         const result = await fetch(
@@ -15,7 +20,7 @@ CoffeePOS.prototype.renderUsers = async function () {
         ).then(r => r.json());
 
         if (!result.success) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-light);">${result.message || 'មិនអាចទាញយកទិន្នន័យបានទេ!'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light);">${result.message || 'មិនអាចតាញយកតិន្នយបានតើ!'}</td></tr>`;
             this.showToast(result.message || 'មិនអាចទាញយកទិន្នន័យបានទេ!', 'error');
             return;
         }
@@ -24,17 +29,35 @@ CoffeePOS.prototype.renderUsers = async function () {
         this.data.users = users;
 
         if (users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-light);">គ្មានអ្នកប្រើប្រាស់</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light);">គ្មានអ្នកប្រើប្រាស់</td></tr>';
             return;
         }
 
-        const roleNames = { admin: 'Admin', manager: 'អ្នកគ្រប់គ្រង', staff: 'បុគ្គលិក' };
+        // Build permission label map from loaded data (fallback to built-in names)
+        const permLabelMap = {};
+        (this.data.permissions || []).forEach(p => { permLabelMap[p.key] = p.label; });
+        const fallbackLabels = { pos: 'POS', items: 'ភេសជ្ជៈ', orders: 'ការលក់', reports: 'របាយការណ៍', users: 'អ្នកប្រើ' };
 
-        tbody.innerHTML = users.map(user => `
+        // Build role label map
+        const roleLabelMap = {};
+        (this.data.roles || []).forEach(r => { roleLabelMap[r.name] = r; });
+        const fallbackRoleNames = { admin: 'Admin', manager: 'អ្នកគ្រប់គ្រង', staff: 'បុគ្គលិក' };
+
+        tbody.innerHTML = users.map(user => {
+            const perms = (user.permissions || []);
+            const roleObj = roleLabelMap[user.role];
+            const roleColor = roleObj?.color || '#6f4e37';
+            const roleLabel = roleObj?.label || fallbackRoleNames[user.role] || user.role;
+            const permHtml = perms.map(p => {
+                const label = permLabelMap[p] || fallbackLabels[p] || p;
+                return `<span class="perm-chip perm-${p}">${label}</span>`;
+            }).join('');
+            return `
             <tr>
                 <td>${user.username}</td>
                 <td>${user.fullname}</td>
-                <td><span class="role-badge ${user.role}">${roleNames[user.role]}</span></td>
+                <td><span class="role-badge" style="background:${hexToRgba(roleColor,0.15)};color:${roleColor};border:1px solid ${hexToRgba(roleColor,0.35)}">${roleLabel}</span></td>
+                <td><div class="perm-chips">${permHtml}</div></td>
                 <td>${formatDisplayDate(user.createdAt)}</td>
                 <td>
                     <button class="btn-view-order" onclick="pos.openUserModal('${user.id}')">
@@ -45,18 +68,71 @@ CoffeePOS.prototype.renderUsers = async function () {
                             <i class="fas fa-trash"></i>
                         </button>` : ''}
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     } catch (error) {
         console.error('Render users error:', error);
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-light);">កំហុស: ${error.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light);">កំហុស: ${error.message}</td></tr>`;
         this.showToast('កំហុសក្នុងការទាញយកទិន្នន័យ: ' + error.message, 'error');
     }
 };
 
-CoffeePOS.prototype.openUserModal = function (userId = null) {
+CoffeePOS.prototype.onRoleChange = function (roleName, customPerms) {
+    // Find role from loaded data
+    const roleObj = (this.data.roles || []).find(r => r.name === roleName);
+    const isAdmin = roleName === 'admin';
+    const defaultPerms = roleObj ? (roleObj.permissions || []).map(p => p.key) : [];
+    const perms   = customPerms || defaultPerms;
+    const locked  = isAdmin;
+
+    // Re-render permission checkboxes dynamically
+    this._renderPermissionCheckboxes(perms, locked, roleObj);
+};
+
+CoffeePOS.prototype._renderPermissionCheckboxes = function (checkedPerms, locked, roleObj) {
+    const permissions = this.data.permissions || [];
+    const checkedSet  = new Set(checkedPerms);
+    const grid = document.getElementById('permissionsGrid');
+    if (!grid) return;
+
+    grid.innerHTML = permissions.map(p => {
+        const isChecked  = checkedSet.has(p.key) ? 'checked' : '';
+        const isDisabled = locked ? 'disabled' : '';
+        return `
+        <label class="permission-item ${locked ? 'locked' : ''}" data-perm="${p.key}">
+            <input type="checkbox" id="perm_${p.key}" data-perm-key="${p.key}" ${isChecked} ${isDisabled}>
+            <i class="fas ${p.icon || 'fa-key'} perm-icon"></i>
+            <span class="perm-label">
+                <span>${p.label}</span>
+                <small>${p.label_km || ''}</small>
+            </span>
+        </label>`;
+    }).join('');
+
+    // Lock badge
+    const badge = document.getElementById('permLockBadge');
+    if (badge) badge.classList.toggle('hidden', !locked);
+
+    // Role description
+    const descEl = document.getElementById('roleDescription');
+    const descTxt = document.getElementById('roleDescText');
+    if (roleObj && descEl && descTxt) {
+        descTxt.textContent = roleObj.description || roleObj.label || '';
+        descEl.style.color  = roleObj.color || '#6f4e37';
+        descEl.style.background = hexToRgba(roleObj.color || '#6f4e37', 0.08);
+        descEl.style.borderColor = hexToRgba(roleObj.color || '#6f4e37', 0.3);
+    }
+};
+
+CoffeePOS.prototype.openUserModal = async function (userId = null) {
     if (this.currentUser.role !== 'admin') {
         this.showToast('មានតែ Admin ទេដែលអាចគ្រប់គ្រងអ្នកប្រើប្រាស់!', 'error');
         return;
+    }
+
+    // Ensure roles/permissions loaded before rendering checkboxes
+    if (!this.data.roles || !this.data.roles.length) {
+        await this.loadRolesAndPermissions();
     }
 
     const modal = document.getElementById('userModal');
@@ -75,13 +151,10 @@ CoffeePOS.prototype.openUserModal = function (userId = null) {
             document.getElementById('userFullname').value = user.fullname;
             document.getElementById('userPassword').value = '';
             document.getElementById('userRole').value     = user.role;
-            const perms = user.permissions || [];
-            document.getElementById('permPOS').checked     = perms.includes('pos');
-            document.getElementById('permItems').checked   = perms.includes('items');
-            document.getElementById('permOrders').checked  = perms.includes('orders');
-            document.getElementById('permReports').checked = perms.includes('reports');
-            
-            // Set duration fields
+
+            // Apply role UI with user's actual saved permissions
+            this.onRoleChange(user.role, user.permissions || []);
+
             if (user.startDate) {
                 document.getElementById('userStartDate').value = new Date(user.startDate).toISOString().slice(0, 16);
             } else {
@@ -97,6 +170,8 @@ CoffeePOS.prototype.openUserModal = function (userId = null) {
         this.editingUser = null;
         document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus"></i> បន្ថែមអ្នកប្រើប្រាស់';
         document.getElementById('userId').value = '';
+        // Default to staff
+        this.onRoleChange('staff');
     }
 
     modal.classList.add('active');
@@ -148,14 +223,12 @@ CoffeePOS.prototype.saveUser = async function () {
         }
     }
 
-    const permissions = [];
-    if (document.getElementById('permPOS').checked)     permissions.push('pos');
-    if (document.getElementById('permItems').checked)   permissions.push('items');
-    if (document.getElementById('permOrders').checked)  permissions.push('orders');
-    if (document.getElementById('permReports').checked) permissions.push('reports');
+    const permissions = Array.from(
+        document.querySelectorAll('#permissionsGrid input[data-perm-key]:checked')
+    ).map(cb => cb.getAttribute('data-perm-key'));
     if (role === 'admin') {
         permissions.length = 0;
-        permissions.push('pos', 'items', 'orders', 'reports', 'users');
+        permissions.push(...(this.data.permissions || []).map(p => p.key));
     }
 
     const isUpdatingCurrentUser = id && id === this.currentUser.id;

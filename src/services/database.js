@@ -91,6 +91,40 @@ class DatabaseService {
                 value TEXT NOT NULL
             )
         `);
+
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS permissions (
+                id          TEXT PRIMARY KEY,
+                key         TEXT UNIQUE NOT NULL,
+                label       TEXT NOT NULL,
+                label_km    TEXT NOT NULL,
+                icon        TEXT DEFAULT 'fa-key',
+                description TEXT,
+                is_system   INTEGER DEFAULT 0
+            )
+        `);
+
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS roles (
+                id          TEXT PRIMARY KEY,
+                name        TEXT UNIQUE NOT NULL,
+                label       TEXT NOT NULL,
+                color       TEXT DEFAULT '#6f4e37',
+                icon        TEXT DEFAULT 'fa-user',
+                description TEXT,
+                is_system   INTEGER DEFAULT 0
+            )
+        `);
+
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS role_permissions (
+                role_id       TEXT NOT NULL,
+                permission_id TEXT NOT NULL,
+                PRIMARY KEY (role_id, permission_id),
+                FOREIGN KEY (role_id)       REFERENCES roles(id)       ON DELETE CASCADE,
+                FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+            )
+        `);
     }
 
     seedDefaults() {
@@ -148,6 +182,45 @@ class DatabaseService {
                 ('shopName', 'Coffee POS'),
                 ('currency', '៛'),
                 ('taxRate', '0')
+            `);
+        }
+
+        // Insert default permissions
+        const permCount = this.db.prepare('SELECT COUNT(*) as count FROM permissions').get();
+        if (permCount.count === 0) {
+            this.db.exec(`
+                INSERT INTO permissions (id, key, label, label_km, icon, description, is_system) VALUES
+                ('perm_pos',     'pos',     'POS',           'លក់',             'fa-cash-register', 'ចូលប្រើប្រព័ន្ធ POS', 1),
+                ('perm_items',   'items',   'Items',         'មុខម្ហូប',        'fa-box-open',      'គ្រប់គ្រងមុខម្ហូប',   1),
+                ('perm_orders',  'orders',  'Orders',        'ការលក់',          'fa-receipt',       'មើលប្រវត្តិការលក់',    1),
+                ('perm_reports', 'reports', 'Reports',       'របាយការណ៍',      'fa-chart-bar',     'មើលតារាងស្ថិតិ',       1),
+                ('perm_users',   'users',   'Users',         'អ្នកប្រើ',        'fa-users',         'គ្រប់គ្រងអ្នកប្រើ',    1)
+            `);
+        }
+
+        // Insert default roles
+        const roleCount = this.db.prepare('SELECT COUNT(*) as count FROM roles').get();
+        if (roleCount.count === 0) {
+            this.db.exec(`
+                INSERT INTO roles (id, name, label, color, icon, description, is_system) VALUES
+                ('role_admin',   'admin',   'Admin',            '#6f4e37', 'fa-shield-halved', 'Full system access',          1),
+                ('role_manager', 'manager', 'អ្នកគ្រប់គ្រងរង', '#3498db', 'fa-user-tie',      'Access without user mgmt',     0),
+                ('role_staff',   'staff',   'បុគ្គលិក',         '#27ae60', 'fa-user',          'Basic POS and order access',   0)
+            `);
+            // Assign default permissions to roles
+            this.db.exec(`
+                INSERT INTO role_permissions (role_id, permission_id) VALUES
+                ('role_admin',   'perm_pos'),
+                ('role_admin',   'perm_items'),
+                ('role_admin',   'perm_orders'),
+                ('role_admin',   'perm_reports'),
+                ('role_admin',   'perm_users'),
+                ('role_manager', 'perm_pos'),
+                ('role_manager', 'perm_items'),
+                ('role_manager', 'perm_orders'),
+                ('role_manager', 'perm_reports'),
+                ('role_staff',   'perm_pos'),
+                ('role_staff',   'perm_orders')
             `);
         }
     }

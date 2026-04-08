@@ -752,6 +752,7 @@ body {
     min-height: 0;
     overflow-y: auto;
     padding-right: 6px;
+    align-content: start;
 }
 
 .product-card {
@@ -763,6 +764,11 @@ body {
     transition: all 0.3s;
     text-align: center;
     position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .product-card:hover {
@@ -1254,20 +1260,37 @@ body {
 }
 
 .btn-edit-item {
-    background: var(--warning);
+    background: var(--primary);
     color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(111, 78, 55, 0.2);
 }
+
 .btn-edit-item:hover {
-    background: #e67e22;
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(111, 78, 55, 0.3);
 }
 
 .btn-delete-item {
     background: var(--danger);
     color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
 }
 
 .btn-delete-item:hover {
     background: var(--danger-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
 }
 
 /* Orders Table */
@@ -1369,18 +1392,21 @@ body {
 }
 
 .btn-view-order {
-    padding: 6px 12px;
+    padding: 8px 12px;
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 12px;
-    transition: all 0.3s;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(111, 78, 55, 0.2);
 }
 
 .btn-view-order:hover {
     background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(111, 78, 55, 0.3);
 }
 
 /* Reports */
@@ -1392,7 +1418,7 @@ body {
 
 .reports-summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
@@ -1503,10 +1529,32 @@ body {
     font-weight: 700;
 }
 
+.top-products-container {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
 .top-products {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.top-products-chart-container {
+    width: 350px;
+    height: 350px;
+    flex-shrink: 0;
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.top-products-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .top-product-item {
@@ -1516,6 +1564,10 @@ body {
     padding: 15px;
     background: var(--bg);
     border-radius: 10px;
+}
+
+.top-product-item:not(:last-child)::after {
+    content: none;
 }
 
 .top-product-rank {
@@ -1529,27 +1581,23 @@ body {
     justify-content: center;
     font-weight: 700;
     font-size: 16px;
+    flex-shrink: 0;
 }
 
 .top-product-info {
     flex: 1;
 }
 
-.top-product-info h4 {
+.top-product-info .top-product-name {
     font-size: 14px;
     color: var(--text);
+    font-weight: 600;
     margin-bottom: 4px;
 }
 
-.top-product-info p {
+.top-product-info .top-product-qty {
     font-size: 13px;
     color: var(--text-light);
-}
-
-.top-product-sales {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--success);
 }
 
 /* Users Table */
@@ -1607,6 +1655,27 @@ body {
     color: var(--success);
 }
 
+.perm-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.perm-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.perm-chip.perm-pos     { background: rgba(111,78,55,0.1);  color: var(--primary); }
+.perm-chip.perm-items   { background: rgba(52,152,219,0.1); color: var(--info); }
+.perm-chip.perm-orders  { background: rgba(39,174,96,0.1);  color: var(--success); }
+.perm-chip.perm-reports { background: rgba(243,156,18,0.1); color: var(--warning); }
+.perm-chip.perm-users   { background: rgba(155,89,182,0.1); color: #9b59b6; }
+
 /* Modal */
 .modal-content {
     background: var(--card-bg);
@@ -1616,6 +1685,7 @@ body {
     max-height: 90vh;
     overflow-y: auto;
     animation: slideUp 0.3s ease;
+    position: relative;
 }
 
 .modal-content.checkout-modal {
@@ -1678,6 +1748,11 @@ body {
     align-items: center;
     padding: 20px;
     border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 10;
+    border-radius: 15px 15px 0 0;
 }
 
 .modal-header h2 {
@@ -1718,6 +1793,11 @@ body {
     justify-content: flex-end;
     padding: 20px;
     border-top: 2px solid var(--border);
+    position: sticky;
+    bottom: 0;
+    background: var(--card-bg);
+    z-index: 10;
+    border-radius: 0 0 15px 15px;
 }
 
 .btn-cancel {
@@ -1854,6 +1934,32 @@ body {
 }
 
 /* Permissions */
+.permissions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.permissions-header label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.perm-lock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    background: rgba(111,78,55,0.12);
+    color: var(--primary);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.perm-lock-badge.hidden { display: none; }
+
 .permissions {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1868,17 +1974,77 @@ body {
     background: var(--bg);
     border-radius: 8px;
     cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+}
+
+.permission-item:has(input:checked) {
+    border-color: var(--primary-light);
+    background: rgba(111,78,55,0.05);
 }
 
 .permission-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     cursor: pointer;
+    accent-color: var(--primary);
+    flex-shrink: 0;
 }
 
-.permission-item span {
-    font-size: 14px;
+.permission-item.locked {
+    opacity: 0.72;
+    cursor: not-allowed;
+    border-color: rgba(111,78,55,0.2);
+    background: rgba(111,78,55,0.06);
 }
+
+.perm-icon {
+    font-size: 15px;
+    color: var(--primary);
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.perm-label {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
+.perm-label span {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.perm-label small {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.perm-note {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+/* Role description badge */
+.role-description {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.role-description.admin   { background: rgba(111,78,55,0.1);  color: var(--primary); }
+.role-description.manager { background: rgba(52,152,219,0.1); color: var(--info); }
+.role-description.staff   { background: rgba(39,174,96,0.1);  color: var(--success); }
 
 /* Checkout Content */
 .checkout-content {
@@ -2323,7 +2489,7 @@ body {
     }
 
     .reports-summary {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -2638,7 +2804,7 @@ body {
     }
 
     .reports-summary {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .stats-grid {
@@ -3199,8 +3365,8 @@ body {
     }
 
     .reports-summary {
-        grid-template-columns: 1fr;
-        gap: 15px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 
     .report-card {
@@ -3248,8 +3414,18 @@ body {
         font-size: 18px;
     }
 
+    .top-products-container {
+        flex-direction: column;
+    }
+
     .top-products {
         gap: 10px;
+    }
+
+    .top-products-chart-container {
+        width: 280px;
+        height: 280px;
+        padding: 15px;
     }
 
     .top-product-item {
@@ -3263,16 +3439,12 @@ body {
         font-size: 14px;
     }
 
-    .top-product-info h4 {
+    .top-product-info .top-product-name {
         font-size: 13px;
     }
 
-    .top-product-info p {
+    .top-product-info .top-product-qty {
         font-size: 12px;
-    }
-
-    .top-product-sales {
-        font-size: 16px;
     }
 
     /* Users Table */
@@ -3714,3 +3886,396 @@ body {
     }
     */
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ROLES & PERMISSIONS MANAGEMENT
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Roles Manager toolbar */
+.roles-manager-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+/* Role card grid */
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.role-card {
+    background: var(--card-bg, #fff);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-left: 4px solid #6f4e37;
+    transition: box-shadow 0.2s ease;
+}
+
+.role-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+}
+
+.role-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.role-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.role-card-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.role-card-meta strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text, #2c2c2c);
+}
+
+.role-card-meta code {
+    font-size: 0.75rem;
+    color: var(--text-light, #888);
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.role-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.role-card-desc {
+    font-size: 0.82rem;
+    color: var(--text-light, #888);
+    margin: 4px 0 10px;
+    line-height: 1.4;
+}
+
+.role-perm-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.role-system-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.06);
+    color: var(--text-light, #888);
+    margin-left: 4px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.btn-primary {
+    background: var(--primary, #6f4e37);
+    color: #fff;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border, #ddd);
+    color: var(--text, #333);
+}
+
+.btn-outline:hover { background: rgba(0,0,0,0.04); }
+
+.btn-danger-outline {
+    background: transparent;
+    border: 1.5px solid #e74c3c;
+    color: #e74c3c;
+}
+
+.btn-danger-outline:hover { background: rgba(231,76,60,0.08); }
+
+.btn-sm {
+    padding: 4px 9px;
+    font-size: 0.78rem;
+    border-radius: 5px;
+}
+
+/* Outline action button (in page header) */
+.btn-outline-action {
+    background: transparent;
+    border: 1.5px solid var(--primary, #6f4e37);
+    color: var(--primary, #6f4e37);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease;
+}
+
+.btn-outline-action:hover {
+    background: rgba(111,78,55,0.08);
+}
+
+/* Permission checkboxes grid (dynamic, in user modal) */
+.perm-checks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.perm-check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border, #e0e0e0);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 0.85rem;
+}
+
+.perm-check-item:hover {
+    border-color: var(--primary, #6f4e37);
+    background: rgba(111,78,55,0.04);
+}
+
+.perm-check-item.locked {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.perm-check-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: rgba(111,78,55,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    color: var(--primary, #6f4e37);
+    flex-shrink: 0;
+}
+
+.perm-check-label {
+    font-size: 0.83rem;
+    color: var(--text, #333);
+}
+
+/* Color picker row */
+.color-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-picker {
+    width: 48px;
+    height: 36px;
+    padding: 2px;
+    border: 1.5px solid var(--border, #ddd);
+    border-radius: 7px;
+    cursor: pointer;
+    background: none;
+}
+
+.color-hex-label {
+    font-size: 0.83rem;
+    color: var(--text-light, #888);
+    font-family: monospace;
+}
+
+/* Modal size variant */
+.modal-lg .modal-content,
+.modal-content.modal-lg {
+    max-width: 800px;
+    width: 95%;
+}
+
+/* Role description block (dynamic, in user modal) */
+#roleDescription {
+    margin-top: 6px;
+    padding: 8px 12px;
+    border-radius: 7px;
+    border: 1px solid rgba(111,78,55,0.25);
+    background: rgba(111,78,55,0.06);
+    font-size: 0.83rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary, #6f4e37);
+    transition: all 0.2s ease;
+}
+
+/* Settings Page Styles */
+.settings-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.settings-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+}
+
+.settings-section h3 {
+    font-size: 1.3rem;
+    color: var(--primary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-section h3 i {
+    font-size: 1.4rem;
+}
+
+.settings-description {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+/* Logo Management */
+.logo-management {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.logo-preview-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 20px;
+    background: var(--bg);
+    border-radius: 10px;
+}
+
+.logo-preview-container {
+    flex-shrink: 0;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 15px;
+}
+
+.logo-preview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.logo-info {
+    flex: 1;
+}
+
+.logo-info p {
+    margin: 8px 0;
+    font-size: 0.95rem;
+    color: var(--text);
+}
+
+.logo-usage-hint {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.logo-upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    width: fit-content;
+}
+
+.upload-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.upload-btn i {
+    font-size: 1.1rem;
+}
+
+.upload-hint {
+    padding: 12px 16px;
+    background: rgba(52, 152, 219, 0.1);
+    border-left: 3px solid var(--info);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.85rem;
+}
+
+.upload-hint p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.upload-hint i {
+    color: var(--info);
+}
+

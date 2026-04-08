@@ -152,6 +152,7 @@ CoffeePOS.prototype.loadTopProducts = async function (startDate, endDate) {
             container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:20px;">គ្មានទិន្នន័យ</p>';
             return;
         }
+
         container.innerHTML = topProducts.map(([name, qty], index) => `
             <div class="top-product-item">
                 <div class="top-product-rank">#${index + 1}</div>
@@ -160,7 +161,113 @@ CoffeePOS.prototype.loadTopProducts = async function (startDate, endDate) {
                     <div class="top-product-qty">លក់បាន ${qty} ចំនួន</div>
                 </div>
             </div>`).join('');
+
+        this.renderTopProductsPieChart(topProducts);
     } catch (error) {
         console.error('Load top products error:', error);
     }
+};
+
+CoffeePOS.prototype.renderTopProductsPieChart = function (topProducts) {
+    const canvas = document.getElementById('topProductsPieChart');
+    if (!canvas) {
+        console.error('Pie chart canvas not found');
+        return;
+    }
+    
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return;
+    }
+
+    // Destroy existing chart if it exists
+    if (this.topProductsChart) {
+        this.topProductsChart.destroy();
+        this.topProductsChart = null;
+    }
+
+    const labels = topProducts.map(([name]) => name);
+    const data = topProducts.map(([, qty]) => qty);
+
+    console.log('Rendering pie chart with data:', { labels, data });
+
+    const colors = [
+        '#E63946',  // Red
+        '#F4A261',  // Orange
+        '#2A9D8F',  // Teal
+        '#E9C46A',  // Yellow
+        '#264653'   // Dark Blue
+    ];
+
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+        try {
+            this.topProductsChart = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 800
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Kantumruy Pro', sans-serif",
+                                    size: 11,
+                                    weight: '500'
+                                },
+                                color: '#4A3728',
+                                padding: 12,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                pointStyleWidth: 15,
+                                boxWidth: 15,
+                                boxHeight: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(74, 55, 40, 0.9)',
+                            titleFont: {
+                                family: "'Kantumruy Pro', sans-serif",
+                                size: 13
+                            },
+                            bodyFont: {
+                                family: "'Kantumruy Pro', sans-serif",
+                                size: 12
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} ចំនួន (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('Pie chart rendered successfully');
+        } catch (error) {
+            console.error('Error rendering pie chart:', error);
+        }
+    }, 100);
 };

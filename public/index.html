@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="km">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="icon" type="image/png" href="/assets/mt_logo.png">
 </head>
 <body>
@@ -74,6 +75,10 @@
                 <a href="#" class="nav-item" data-page="users" id="usersNav">
                     <i class="fas fa-users"></i>
                     <span>អ្នកប្រើប្រាស់</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings" id="settingsNav">
+                    <i class="fas fa-cog"></i>
+                    <span>ការកំណត់</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -360,8 +365,13 @@
 
                         <div class="report-section">
                             <h3><i class="fas fa-trophy"></i> មុខម្ហូបលក់ដាច់ 5 មុខ</h3>
-                            <div class="top-products" id="topProductsList">
-                                <!-- Top products will be loaded here -->
+                            <div class="top-products-container">
+                                <div class="top-products" id="topProductsList">
+                                    <!-- Top products will be loaded here -->
+                                </div>
+                                <div class="top-products-chart-container">
+                                    <canvas id="topProductsPieChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -373,6 +383,9 @@
                 <header class="page-header">
                     <h1><i class="fas fa-users"></i> គ្រប់គ្រងអ្នកប្រើប្រាស់</h1>
                     <div class="header-actions">
+                        <button class="btn-action btn-outline-action" onclick="pos.openRolesManager()">
+                            <i class="fas fa-shield-alt"></i> Roles &amp; Permissions
+                        </button>
                         <button id="addUserBtn" class="btn-action">
                             <i class="fas fa-plus"></i> បន្ថែមអ្នកប្រើប្រាស់
                         </button>
@@ -386,6 +399,7 @@
                                 <th>ឈ្មោះអ្នកប្រើប្រាស់</th>
                                 <th>ឈ្មោះពេញ</th>
                                 <th>តួនាទី</th>
+                                <th>សិទ្ធិប្រើប្រាស់</th>
                                 <th>កាលបរិច្ឆេទបង្កើត</th>
                                 <th>សកម្មភាព</th>
                             </tr>
@@ -394,6 +408,43 @@
                             <!-- Users will be loaded here -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settingsPage" class="page hidden">
+                <header class="page-header">
+                    <h1><i class="fas fa-cog"></i> ការកំណត់ប្រព័ន្ធ</h1>
+                </header>
+
+                <div class="settings-container">
+                    <!-- Logo Management Section -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-image"></i> គ្រប់គ្រងឡូហ្គោ</h3>
+                        <p class="settings-description">ផ្ទុកឡើង និងគ្រប់គ្រងឡូហ្គោរបស់ប្រព័ន្ធ</p>
+                        
+                        <div class="logo-management">
+                            <div class="logo-preview-section">
+                                <div class="logo-preview-container">
+                                    <img id="logoPreview" src="/assets/mt_logo.png" alt="Logo Preview" class="logo-preview">
+                                </div>
+                                <div class="logo-info">
+                                    <p><strong>ឡូហ្គោបច្ចុប្បន្ន:</strong> <span id="currentLogoName">mt_logo.png</span></p>
+                                    <p class="logo-usage-hint">ឡូហ្គោនឹងបង្ហាញនៅ: ផ្ទាំងចូល, របារចំហៀង, favicon</p>
+                                </div>
+                            </div>
+                            
+                            <div class="logo-upload-section">
+                                <label class="upload-btn" for="logoFileInput">
+                                    <i class="fas fa-upload"></i> ផ្ទុកឡើងឡូហ្គោថ្មី
+                                    <input type="file" id="logoFileInput" accept="image/*" class="hidden">
+                                </label>
+                                <div class="upload-hint">
+                                    <p><i class="fas fa-info-circle"></i> ទ្រទ្រង់: PNG, JPG, SVG (អនុវត្តល្អបំផុត: 200x200px)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -620,35 +671,29 @@
 
                     <div class="form-group">
                         <label>តួនាទី *</label>
-                        <select id="userRole" required>
+                        <select id="userRole" required onchange="pos.onRoleChange(this.value)">
                             <option value="staff">បុគ្គលិក</option>
-                            <option value="manager">អ្នកគ្រប់គ្រង</option>
+                            <option value="manager">អ្នកគ្រប់គ្រងរង</option>
                             <option value="admin">Admin</option>
                         </select>
+                        <div id="roleDescription" class="role-description staff">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="roleDescText">លក់ POS និងមើលការលក់</span>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>សិទ្ធិប្រើប្រាស់ <small style="color: var(--warning);">(Admin គ្រប់គ្រង)</small></label>
-                        <div class="permissions">
-                            <label class="permission-item">
-                                <input type="checkbox" id="permPOS" checked>
-                                <span>លក់ (POS)</span>
-                            </label>
-                            <label class="permission-item">
-                                <input type="checkbox" id="permItems" checked>
-                                <span>គ្រប់គ្រងមុខម្ហូប</span>
-                            </label>
-                            <label class="permission-item">
-                                <input type="checkbox" id="permOrders" checked>
-                                <span>មើលការលក់</span>
-                            </label>
-                            <label class="permission-item">
-                                <input type="checkbox" id="permReports">
-                                <span>របាយការណ៍</span>
-                            </label>
+                    <div class="form-group" id="permissionsGroup">
+                        <div class="permissions-header">
+                            <label>សិទ្ធិប្រើប្រាស់</label>
+                            <span id="permLockBadge" class="perm-lock-badge hidden">
+                                <i class="fas fa-lock"></i> Admin — សិទ្ធិពេញលេញ
+                            </span>
                         </div>
-                        <small style="color: var(--text-light); margin-top: 8px; display: block;">
-                            <i class="fas fa-info-circle"></i> មានតែ Admin ទេដែលអាចកំណត់សិទ្ធិប្រើប្រាស់បាន
+                        <div class="permissions" id="permissionsGrid">
+                            <!-- Populated dynamically by onRoleChange -->
+                        </div>
+                        <small class="perm-note">
+                            <i class="fas fa-info-circle"></i> Admin នឹងទទួលបានសិទ្ធិទាំងអស់ដោយស្វ័យប្រវត្តិ
                         </small>
                     </div>
 
@@ -721,6 +766,76 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
+    <!-- ── Roles Manager Modal ──────────────────────────────────────────── -->
+    <div id="rolesManagerModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-shield-alt"></i> Roles &amp; Permissions</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="rolesManagerContent">
+                <!-- Rendered by renderRolesManager() -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel modal-close">បិទ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Role Edit Modal ──────────────────────────────────────────────── -->
+    <div id="roleEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="roleModalTitle"><i class="fas fa-user-tag"></i> Role</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="roleModalContent">
+                <!-- Rendered by openRoleModal() -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel modal-close">បោះបង់</button>
+                <button class="btn-save" onclick="pos.saveRole()">
+                    <i class="fas fa-save"></i> រក្សាទុក
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Permissions Manager Modal ────────────────────────────────────── -->
+    <div id="permissionsManagerModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Manage Permissions</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="permissionsManagerContent">
+                <!-- Rendered by renderPermissionsManager() -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel modal-close">បិទ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Permission Edit Modal ─────────────────────────────────────────── -->
+    <div id="permissionEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="permModalTitle"><i class="fas fa-key"></i> Permission</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="permModalContent">
+                <!-- Rendered by openPermissionModal() -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel modal-close">បោះបង់</button>
+                <button class="btn-save" onclick="pos.savePermission()">
+                    <i class="fas fa-save"></i> រក្សាទុក
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Socket.io Client -->
     <script src="/socket.io/socket.io.js"></script>
     <!-- Core utilities -->
@@ -734,6 +849,8 @@
     <script src="/js/orders.js"></script>
     <script src="/js/reports.js"></script>
     <script src="/js/users.js"></script>
+    <script src="/js/roles.js"></script>
+    <script src="/js/settings.js"></script>
     <script>var pos = window.pos = new CoffeePOS();</script>
 </body>
 </html>
