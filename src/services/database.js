@@ -191,8 +191,8 @@ class DatabaseService {
             this.db.exec(`
                 INSERT INTO permissions (id, key, label, label_km, icon, description, is_system) VALUES
                 ('perm_pos',     'pos',     'POS',           'លក់',             'fa-cash-register', 'ចូលប្រើប្រព័ន្ធ POS', 1),
-                ('perm_items',   'items',   'Items',         'មុខម្ហូប',        'fa-box-open',      'គ្រប់គ្រងមុខម្ហូប',   1),
-                ('perm_orders',  'orders',  'Orders',        'ការលក់',          'fa-receipt',       'មើលប្រវត្តិការលក់',    1),
+                ('perm_items',   'items',   'Items',         'ទំនិញ',        'fa-box-open',      'គ្រប់គ្រងទំនិញ',   1),
+                ('perm_orders',  'orders',  'Orders',        'ប្រវត្តិការលក់',          'fa-receipt',       'មើលប្រវត្តិការលក់',    1),
                 ('perm_reports', 'reports', 'Reports',       'របាយការណ៍',      'fa-chart-bar',     'មើលតារាងស្ថិតិ',       1),
                 ('perm_users',   'users',   'Users',         'អ្នកប្រើ',        'fa-users',         'គ្រប់គ្រងអ្នកប្រើ',    1)
             `);
@@ -215,6 +215,7 @@ class DatabaseService {
                 ('role_admin',   'perm_orders'),
                 ('role_admin',   'perm_reports'),
                 ('role_admin',   'perm_users'),
+                ('role_admin',   'perm_settings'),
                 ('role_manager', 'perm_pos'),
                 ('role_manager', 'perm_items'),
                 ('role_manager', 'perm_orders'),
@@ -252,3 +253,4 @@ class DatabaseService {
 // Export singleton instance
 const databaseService = new DatabaseService();
 module.exports = databaseService;
+

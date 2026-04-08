@@ -96,10 +96,12 @@ CoffeePOS.prototype.applyUserPermissions = function () {
         if (el) el.classList.toggle('hidden', !show);
     };
 
+    // Toggle menu items based on permissions
     toggle('[data-page="items"]',   isAdmin || perms.includes('items'));
     toggle('[data-page="orders"]',  isAdmin || perms.includes('orders'));
     toggle('[data-page="reports"]', isAdmin || perms.includes('reports'));
-    toggle('#usersNav',             isAdmin);
+    toggle('#usersNav',             isAdmin || perms.includes('users'));
+    toggle('#settingsNav',          isAdmin || perms.includes('settings'));
 
     if (!perms.includes('pos') && !isAdmin) {
         const firstPage = ['items', 'orders', 'reports'].find(p => perms.includes(p));

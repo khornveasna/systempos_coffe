@@ -246,25 +246,70 @@ body {
     padding: 14px 20px;
     color: rgba(255,255,255,0.75);
     text-decoration: none;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-left: 3px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.nav-item:active::before {
+    width: 300px;
+    height: 300px;
 }
 
 .nav-item:hover {
     background: rgba(255,255,255,0.1);
     color: white;
+    transform: translateX(4px);
 }
 
 .nav-item.active {
     background: rgba(255,255,255,0.15);
     color: white;
     border-left-color: var(--accent);
+    transform: translateX(0);
+    animation: slideInActive 0.3s ease-out;
+}
+
+@keyframes slideInActive {
+    from {
+        transform: translateX(-10px);
+        opacity: 0.7;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .nav-item i {
     font-size: 18px;
     width: 24px;
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.nav-item:active i {
+    transform: scale(1.2);
+}
+
+.nav-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
 .sidebar-footer {
@@ -3989,6 +4034,162 @@ body {
     margin-left: 4px;
 }
 
+/* ── Modern Role Card Design ───────────────────────────────────────────── */
+
+.roles-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.role-card-modern {
+    background: var(--card-bg, #fff);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.25s ease;
+}
+
+.role-card-modern:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.role-card-header-modern {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.role-card-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.role-card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.role-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.role-card-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text, #2c2c2c);
+}
+
+.role-card-name {
+    font-size: 0.78rem;
+    color: var(--text-light, #888);
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+}
+
+.role-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.role-card-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border, #e0e0e0);
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: var(--text-light, #888);
+}
+
+.role-card-action-btn:hover {
+    border-color: var(--primary, #6f4e37);
+    color: var(--primary, #6f4e37);
+    background: rgba(111, 78, 55, 0.05);
+}
+
+.role-card-action-btn-danger {
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.role-card-action-btn-danger:hover {
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.role-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-light, #888);
+    margin: 8px 0 12px;
+    line-height: 1.5;
+}
+
+/* ── Modern Buttons ────────────────────────────────────────────────────── */
+
+.roles-manager-toolbar-modern {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-modern-primary {
+    background: var(--primary, #6f4e37);
+    color: white;
+}
+
+.btn-modern-primary:hover {
+    background: #5a3e2e;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+}
+
+.btn-modern-outline {
+    background: white;
+    color: var(--primary, #6f4e37);
+    border: 1.5px solid var(--primary, #6f4e37);
+}
+
+.btn-modern-outline:hover {
+    background: rgba(111, 78, 55, 0.05);
+    transform: translateY(-1px);
+}
+
 /* Buttons */
 .btn {
     display: inline-flex;
@@ -4055,11 +4256,93 @@ body {
 /* Permission checkboxes grid (dynamic, in user modal) */
 .perm-checks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
-    margin-top: 6px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+    padding: 0;
 }
 
+/* Permission menu items - clean modern style */
+.permission-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border-radius: 8px;
+    background: #fafafa;
+    color: var(--text, #555);
+    border: 2px solid #e8e8e8;
+    position: relative;
+}
+
+.permission-menu-item:hover {
+    background: #f0f0f0;
+    border-color: #d0d0d0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.permission-menu-item.active {
+    background: rgba(111, 78, 55, 0.08);
+    border-color: var(--primary, #6f4e37);
+    color: var(--primary, #6f4e37);
+    box-shadow: 0 2px 10px rgba(111, 78, 55, 0.15);
+}
+
+.permission-menu-item input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: var(--primary, #6f4e37);
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.permission-menu-item i {
+    font-size: 1.2rem;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: rgba(111, 78, 55, 0.1);
+    color: var(--primary, #6f4e37);
+    transition: all 0.25s ease;
+}
+
+.permission-menu-item.active i {
+    background: var(--primary, #6f4e37);
+    color: white;
+}
+
+.permission-menu-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.permission-menu-item.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.permission-menu-item.locked:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive - single column on small screens */
+@media (max-width: 600px) {
+    .perm-checks-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Old permission check item style (keep for compatibility) */
 .perm-check-item {
     display: flex;
     align-items: center;
@@ -4177,6 +4460,33 @@ body {
     color: var(--text-light);
     font-size: 0.9rem;
     margin-bottom: 20px;
+}
+
+/* Settings Actions */
+.settings-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: var(--bg);
+    border-radius: 10px;
+    border: 2px dashed var(--border);
+}
+
+.settings-hint {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.settings-hint::before {
+    content: '\f05a';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--primary);
 }
 
 /* Logo Management */
