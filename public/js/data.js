@@ -47,7 +47,6 @@ function initializeData() {
 
 function resetData() {
     localStorage.setItem('coffeePOSData', JSON.stringify(defaultData));
-    console.log('Data reset successfully!');
 }
 
 function getData() {

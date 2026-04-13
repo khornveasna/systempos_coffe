@@ -8,6 +8,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- html2canvas for capturing HTML tables -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- docx for Word export -->
+    <script src="https://unpkg.com/docx@8.2.3/build/index.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="icon" type="image/png" href="/assets/mt_logo.png">
 </head>
 <body>
@@ -237,13 +247,35 @@
                     <h1><i class="fas fa-receipt"></i> ប្រវត្តិការលក់</h1>
                     <div class="header-actions">
                         <div class="date-range-filter">
-                            <input type="date" id="orderStartDate" class="date-filter" placeholder="From">
-                            <span>ដល់</span>
-                            <input type="date" id="orderEndDate" class="date-filter" placeholder="To">
+                            <select id="orderSellerFilter" class="seller-filter">
+                                <option value="">អ្នកលក់ទាំងអស់</option>
+                            </select>
+                            <select id="orderDateQuickFilter" class="date-quick-filter">
+                                <option value="today">ថ្ងៃនេះ</option>
+                                <option value="week">សប្ដាហ៍នេះ</option>
+                                <option value="month">ខែនេះ</option>
+                                <option value="custom">កំណត់ថ្ងៃ</option>
+                            </select>
+                            <input type="date" id="orderStartDate" class="date-filter" placeholder="ពីថ្ងៃ" style="display:none;">
+                            <span class="to-separator" style="display:none;">ដល់</span>
+                            <input type="date" id="orderEndDate" class="date-filter" placeholder="ដល់ថ្ងៃ" style="display:none;">
                         </div>
-                        <button id="exportOrdersBtn" class="btn-action">
-                            <i class="fas fa-download"></i> Export
-                        </button>
+                        <div class="export-dropdown">
+                            <button id="exportOrdersBtn" class="btn-action">
+                                <i class="fas fa-download"></i> Export Report <i class="fas fa-caret-down"></i>
+                            </button>
+                            <div class="export-menu" id="exportMenu">
+                                <button onclick="pos.exportOrdersWord()">
+                                    <i class="fas fa-file-word"></i> Export Word
+                                </button>
+                                <button onclick="pos.exportOrdersExcel()">
+                                    <i class="fas fa-file-excel"></i> Export Excel
+                                </button>
+                                <button onclick="pos.exportOrdersPDF()">
+                                    <i class="fas fa-file-pdf"></i> Export PDF
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </header>
 
@@ -258,7 +290,7 @@
                                 <th>ចំនួន</th>
                                 <th>សរុប</th>
                                 <th>បញ្ចុះ</th>
-                                <th>អ្នកបម្រើ</th>
+                                <th>អ្នកលក់</th>
                                 <th>សកម្មភាព</th>
                             </tr>
                         </thead>
@@ -274,25 +306,17 @@
                 <header class="page-header">
                     <h1><i class="fas fa-chart-line"></i> របាយការណ៍</h1>
                     <div class="header-actions">
-                        <select id="reportPeriod" class="period-select">
+                        <select id="reportDateQuickFilter" class="date-quick-filter">
                             <option value="today">ថ្ងៃនេះ</option>
-                            <option value="yesterday">ម្សិលមិញ</option>
-                            <option value="week">សប្តាហ៍នេះ</option>
-                            <option value="lastWeek">សប្តាហ៍មុន</option>
+                            <option value="week">សប្ដាហ៍នេះ</option>
                             <option value="month">ខែនេះ</option>
-                            <option value="lastMonth">ខែមុន</option>
-                            <option value="year">ឆ្នាំនេះ</option>
-                            <option value="lastYear">ឆ្នាំមុន</option>
-                            <option value="custom">កំណត់ខ្លួនឯង</option>
+                            <option value="custom">កំណត់ថ្ងៃ</option>
                         </select>
-                        <div id="customDateRange" class="custom-date-range hidden">
-                            <input type="date" id="customStartDate" class="date-filter">
-                            <span>ដល់</span>
-                            <input type="date" id="customEndDate" class="date-filter">
+                        <div id="customDateRange" class="custom-date-range">
+                            <input type="date" id="customStartDate" class="date-filter" style="display:none;">
+                            <span class="to-separator" style="display:none;">ដល់</span>
+                            <input type="date" id="customEndDate" class="date-filter" style="display:none;">
                         </div>
-                        <button id="generateReportBtn" class="btn-action">
-                            <i class="fas fa-sync"></i> ធ្វើឡើងវិញ
-                        </button>
                     </div>
                 </header>
 
@@ -418,19 +442,6 @@
                 </header>
 
                 <div class="settings-container">
-                    <!-- Roles & Permissions Section -->
-                    <div class="settings-section">
-                        <h3><i class="fas fa-shield-alt"></i> តួនាទី និងសិទ្ធិប្រើប្រាស់</h3>
-                        <p class="settings-description">គ្រប់គ្រងតួនាទី និងសិទ្ធិរបស់អ្នកប្រើប្រាស់</p>
-
-                        <div class="settings-actions">
-                            <button type="button" id="manageRolesBtn" class="btn-action-primary" onclick="pos.openRolesManager()">
-                                <i class="fas fa-shield-alt"></i> គ្រប់គ្រងតួនាទី និងសិទ្ធិ
-                            </button>
-                            <p class="settings-hint">បន្ថែម កែសម្រួល ឬលុបតួនាទី និងកំណត់សិទ្ធិប្រើប្រាស់សម្រាប់អ្នកប្រើប្រាស់</p>
-                        </div>
-                    </div>
-
                     <!-- Logo Management Section -->
                     <div class="settings-section">
                         <h3><i class="fas fa-image"></i> គ្រប់គ្រងឡូហ្គោ</h3>
@@ -479,7 +490,7 @@
                                 <p>ប្រព័ន្ធគ្រប់គ្រងហាងកាហ្វេ</p>
                                 <p class="receipt-number">លេខវិក័យបត្រ: <span id="receiptNumber"></span></p>
                                 <p class="receipt-date">កាលបរិច្ឆេទ: <span id="receiptDate"></span></p>
-                                <p class="receipt-server">អ្នកបម្រើ: <span id="receiptServer"></span></p>
+                                <p class="receipt-server">អ្នកលក់: <span id="receiptServer"></span></p>
                             </div>
                             <div class="receipt-divider"></div>
                             <div class="receipt-items" id="receiptItems"></div>
@@ -706,17 +717,6 @@
                         <small class="perm-note">
                             <i class="fas fa-info-circle"></i> Admin នឹងទទួលបានសិទ្ធិទាំងអស់ដោយស្វ័យប្រវត្តិ
                         </small>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>កាលបរិច្ឆេទចាប់ផ្តើម</label>
-                            <input type="datetime-local" id="userStartDate">
-                        </div>
-                        <div class="form-group">
-                            <label>កាលបរិច្ឆេទបញ្ចប់</label>
-                            <input type="datetime-local" id="userEndDate">
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

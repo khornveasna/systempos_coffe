@@ -223,20 +223,14 @@ class CoffeePOS {
         // Orders
         document.getElementById('orderStartDate').addEventListener('change', () => this.renderOrders());
         document.getElementById('orderEndDate').addEventListener('change', () => this.renderOrders());
-        document.getElementById('exportOrdersBtn').addEventListener('click', () => this.exportOrders());
+        document.getElementById('orderSellerFilter').addEventListener('change', () => this.renderOrders());
+
+        // Initialize export dropdown
+        this.initExportDropdown();
+
         document.getElementById('printOrderBtn').addEventListener('click', () => this.printOrder());
 
         // Reports
-        document.getElementById('generateReportBtn').addEventListener('click', () => this.generateReports());
-        document.getElementById('reportPeriod').addEventListener('change', () => {
-            const customRange = document.getElementById('customDateRange');
-            if (document.getElementById('reportPeriod').value === 'custom') {
-                customRange.classList.remove('hidden');
-            } else {
-                customRange.classList.add('hidden');
-            }
-            this.generateReports();
-        });
         document.getElementById('customStartDate').addEventListener('change', () => this.generateReports());
         document.getElementById('customEndDate').addEventListener('change', () => this.generateReports());
 
@@ -348,8 +342,15 @@ class CoffeePOS {
                 }
                 this.renderItems();
                 break;
-            case 'orders':  this.renderOrders();    break;
-            case 'reports': this.generateReports(); break;
+            case 'orders':
+                this.populateSellerFilter();
+                this.renderOrders();
+                this.initQuickDateFilter();
+                break;
+            case 'reports':
+                this.generateReports();
+                this.initReportDateFilter();
+                break;
             case 'users':   this.renderUsers();     break;
             case 'settings': if (this.settingsModule) this.settingsModule.loadSettings(); break;
         }
