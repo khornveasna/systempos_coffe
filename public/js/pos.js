@@ -82,7 +82,6 @@ CoffeePOS.prototype.renderCart = function () {
 
     document.getElementById('cartCount').textContent = `(${this.cart.reduce((s, i) => s + i.quantity, 0)})`;
     this.updateCartTotals();
-    this.updateCartBadge();
 };
 
 CoffeePOS.prototype.increaseQty    = function (i) { this.cart[i].quantity++; this.renderCart(); };

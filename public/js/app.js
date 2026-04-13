@@ -81,43 +81,10 @@ class CoffeePOS {
                     button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 }
                 if (typeof this.updateCategoryIndicator === 'function') {
-
-            const itemsCategoryButtons = document.getElementById('itemsCategoryButtons');
-            if (itemsCategoryButtons) {
-                itemsCategoryButtons.addEventListener('click', event => {
-                    const button = event.target.closest('.category-btn');
-                    if (!button) return;
-
-                    itemsCategoryButtons.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    button.classList.add('active');
-                    this.currentItemsCategory = button.dataset.category;
-
-                    const filterCategory = document.getElementById('filterCategory');
-                    if (filterCategory) filterCategory.value = this.currentItemsCategory;
-
-                    if (typeof button.scrollIntoView === 'function') {
-                        button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                    }
-                    if (typeof this.updateCategoryIndicator === 'function') {
-                        this.updateCategoryIndicator('itemsCategoryButtons');
-                    }
-                    if (typeof this.saveItemsViewState === 'function') {
-                        this.saveItemsViewState();
-                    }
-                    this.renderItems();
-                });
-
-                itemsCategoryButtons.addEventListener('wheel', event => {
-                    if (!event.deltaY) return;
-                    event.preventDefault();
-                    itemsCategoryButtons.scrollLeft += event.deltaY;
-                }, { passive: false });
-            }
                     this.updateCategoryIndicator();
                 }
                 this.renderProducts();
             });
-                    this.updateCategoryIndicator('itemsCategoryButtons');
 
             categoryButtons.addEventListener('wheel', event => {
                 if (!event.deltaY) return;
@@ -290,13 +257,7 @@ class CoffeePOS {
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', () => this.toggleSidebar());
         }
-        
-        // Mobile cart toggle
-        const mobileCartToggle = document.getElementById('mobileCartToggle');
-        if (mobileCartToggle) {
-            mobileCartToggle.addEventListener('click', () => this.toggleCart());
-        }
-        
+
         // Close sidebar when clicking nav items on mobile
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -389,23 +350,8 @@ class CoffeePOS {
     toggleCart() {
         const cartSection = document.querySelector('.cart-section');
         if (!cartSection) return;
-        
-        cartSection.classList.toggle('active');
-    }
 
-    updateCartBadge() {
-        const badge = document.getElementById('cartBadge');
-        if (!badge) return;
-        
-        const totalItems = this.cart.reduce((sum, item) => sum + item.qty, 0);
-        badge.textContent = totalItems;
-        
-        // Show/hide badge based on count
-        if (totalItems > 0) {
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
+        cartSection.classList.toggle('active');
     }
 
     showToast(message, type = 'success') {

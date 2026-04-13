@@ -66,7 +66,7 @@ CoffeePOS.prototype.generateReports = async function () {
 
             // Check for rate limit error
             if (summaryRes.status === 429 || ordersRes.status === 429) {
-                this.showToast('សូមរង់ចាំបន្តិច រួចសាកម្ដងទៀត', 'warning');
+                this.showToast('សូមរង់ចាំបន្តិច រួចសាកម្ដងទត', 'warning');
                 return;
             }
 
@@ -169,6 +169,7 @@ CoffeePOS.prototype.loadTopProducts = async function (startDate, endDate) {
         const container = document.getElementById('topProductsList');
         if (!container) return;
 
+        // Render top products list
         container.innerHTML = topProducts.map(([name, qty], index) => `
             <div class="top-product-item">
                 <div class="top-product-rank">${index + 1}</div>
@@ -177,38 +178,133 @@ CoffeePOS.prototype.loadTopProducts = async function (startDate, endDate) {
                 </div>
                 <div class="top-product-qty">${qty}</div>
             </div>
-        `).join('') || '<div class="no-data">គ្មានទិន្នន័យ</div>';
+        `).join('') || '<div class="no-data">គ្មានទិន្ននយ</div>';
 
-        await this.renderSalesChart(startDate, endDate);
+        // Render pie chart
+        await this.renderTopProductsPieChart(topProducts);
     } catch (error) {
         console.error('Load top products error:', error);
     }
 };
 
-CoffeePOS.prototype.renderSalesChart = async function (startDate, endDate) {
-    try {
-        const result = await fetch(`/api/reports/sales-by-date?startDate=${startDate}&endDate=${endDate}`).then(r => r.json());
-        if (!result.success || !result.data) return;
+CoffeePOS.prototype.renderTopProductsPieChart = function (topProducts) {
+    const canvas = document.getElementById('topProductsPieChart');
+    if (!canvas) return;
 
-        const chartContainer = document.getElementById('salesChartContainer');
-        if (!chartContainer) return;
-
-        const data = result.data;
-        const maxValue = Math.max(...data.map(d => d.totalSales), 1);
-
-        chartContainer.innerHTML = data.map(item => {
-            const barWidth = (item.totalSales / maxValue) * 100;
-            return `
-                <div class="chart-bar-item">
-                    <div class="chart-bar-label">${item.date}</div>
-                    <div class="chart-bar-container">
-                        <div class="chart-bar" style="width: ${barWidth}%"></div>
-                    </div>
-                    <div class="chart-bar-value">${formatCurrency(item.totalSales)}</div>
-                </div>
-            `;
-        }).join('') || '<div class="no-data">គ្មានទិន្ននយ</div>';
-    } catch (error) {
-        console.error('Render sales chart error:', error);
+    // Destroy existing chart if any
+    if (this.pieChartInstance) {
+        this.pieChartInstance.destroy();
     }
+
+    if (topProducts.length === 0) {
+        canvas.parentElement.innerHTML = '<div class="no-data" style="text-align:center;padding:40px;color:var(--text-light);">គ្មានទិន្នន័យសម្រាប់បង្ហាញ</div>';
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    const colors = ['#6F4E37', '#D4A574', '#C9A961', '#8B6B55', '#4A3428'];
+    const totalSales = topProducts.reduce((sum, [, qty]) => sum + qty, 0);
+
+    this.pieChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: topProducts.map(([name]) => name),
+            datasets: [{
+                data: topProducts.map(([, qty]) => qty),
+                backgroundColor: colors.slice(0, topProducts.length),
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverBorderWidth: 4,
+                hoverBorderColor: '#fff',
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1200,
+                easing: 'easeOutBounce'
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            family: "'Kantumruy Pro', sans-serif",
+                            size: 12,
+                            weight: '500'
+                        },
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            return data.labels.map((label, i) => {
+                                const value = data.datasets[0].data[i];
+                                const percentage = ((value / totalSales) * 100).toFixed(1);
+                                return {
+                                    text: `${label}: ${value} ទំនិញ (${percentage}%)`,
+                                    fillStyle: data.datasets[0].backgroundColor[i],
+                                    strokeStyle: data.datasets[0].backgroundColor[i],
+                                    lineWidth: 0,
+                                    hidden: false,
+                                    index: i
+                                };
+                            });
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(111, 78, 55, 0.95)',
+                    titleFont: {
+                        family: "'Kantumruy Pro', sans-serif",
+                        size: 14,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        family: "'Kantumruy Pro', sans-serif",
+                        size: 13
+                    },
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `  ${label}: ${value} ទំនិញ (${percentage}%)`;
+                        }
+                    }
+                },
+                datalabels: {
+                    color: '#fff',
+                    font: {
+                        family: "'Kantumruy Pro', sans-serif",
+                        size: 13,
+                        weight: '600'
+                    },
+                    formatter: function(value, context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return `${value}\n(${percentage}%)`;
+                    },
+                    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+                    textShadowBlur: 4,
+                    textAlign: 'center',
+                    anchor: 'center',
+                    align: 'center',
+                    offset: 0
+                }
+            },
+            layout: {
+                padding: 10
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
 };
