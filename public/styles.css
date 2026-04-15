@@ -246,25 +246,70 @@ body {
     padding: 14px 20px;
     color: rgba(255,255,255,0.75);
     text-decoration: none;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-left: 3px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.nav-item:active::before {
+    width: 300px;
+    height: 300px;
 }
 
 .nav-item:hover {
     background: rgba(255,255,255,0.1);
     color: white;
+    transform: translateX(4px);
 }
 
 .nav-item.active {
     background: rgba(255,255,255,0.15);
     color: white;
     border-left-color: var(--accent);
+    transform: translateX(0);
+    animation: slideInActive 0.3s ease-out;
+}
+
+@keyframes slideInActive {
+    from {
+        transform: translateX(-10px);
+        opacity: 0.7;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .nav-item i {
     font-size: 18px;
     width: 24px;
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.nav-item:active i {
+    transform: scale(1.2);
+}
+
+.nav-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
 .sidebar-footer {
@@ -583,7 +628,8 @@ body {
 
 .date-filter,
 .period-select,
-.filter-select {
+.filter-select,
+.date-quick-filter {
     padding: 10px 15px;
     border: 2px solid var(--border);
     border-radius: 8px;
@@ -591,12 +637,99 @@ body {
     font-size: 14px;
     background: white;
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.date-quick-filter:hover {
+    border-color: var(--primary);
+}
+
+.date-quick-filter:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.1);
 }
 
 .date-range-filter {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.seller-filter {
+    padding: 10px 15px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.export-dropdown {
+    position: relative;
+}
+
+.export-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 5px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    min-width: 150px;
+}
+
+.export-menu.show {
+    display: block;
+}
+
+.export-menu button {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    background: white;
+    text-align: left;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.export-menu button:first-child {
+    border-radius: 6px 6px 0 0;
+}
+
+.export-menu button:last-child {
+    border-radius: 0 0 6px 6px;
+}
+
+.export-menu button:hover {
+    background: var(--bg);
+}
+
+.export-menu button i:first-child {
+    width: 20px;
+}
+
+.export-menu button i.fa-file-excel {
+    color: #217346;
+}
+
+.export-menu button i.fa-file-word {
+    color: #2b579a;
+}
+
+.export-menu button i.fa-file-pdf {
+    color: #dc2626;
 }
 
 .date-range-filter span {
@@ -958,6 +1091,39 @@ body {
     font-size: 13px;
 }
 
+/* Cart Item Customization Tags */
+.cart-item-customization {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.customization-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sugar-tag {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    color: #d63031;
+}
+
+.ice-tag {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    color: white;
+}
+
+.customization-tag i {
+    font-size: 10px;
+}
+
 .cart-item-controls {
     display: flex;
     align-items: center;
@@ -1010,6 +1176,34 @@ body {
     border-top: 2px solid var(--border);
     padding-top: 15px;
     margin-bottom: 15px;
+}
+
+/* Exchange Rate Display in Cart */
+.exchange-rate-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.exchange-rate-display.show {
+    display: flex !important;
+}
+
+.exchange-rate-display i {
+    font-size: 16px;
+}
+
+.exchange-rate-display strong {
+    font-size: 15px;
+    font-weight: 700;
 }
 
 .summary-row {
@@ -1531,8 +1725,11 @@ body {
 
 .top-products-container {
     display: flex;
-    gap: 30px;
+    gap: 40px;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 20px 0;
 }
 
 .top-products {
@@ -1543,18 +1740,23 @@ body {
 }
 
 .top-products-chart-container {
-    width: 350px;
-    height: 350px;
+    width: 600px;
+    height: 600px;
     flex-shrink: 0;
     background: white;
-    border-radius: 15px;
-    padding: 20px;
+    border-radius: 20px;
+    padding: 30px;
     box-shadow: var(--shadow);
+    margin: 20px auto;
 }
 
 .top-products-chart-container canvas {
     width: 100% !important;
     height: 100% !important;
+    max-width: 540px !important;
+    max-height: 540px !important;
+    display: block;
+    margin: 0 auto;
 }
 
 .top-product-item {
@@ -2216,6 +2418,107 @@ body {
     font-family: 'Kantumruy Pro', sans-serif;
 }
 
+/* Exchange Rate Info in Checkout */
+.exchange-rate-info {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border-left: 4px solid #1976d2;
+}
+
+.exchange-rate-info.show {
+    display: flex !important;
+}
+
+.exchange-rate-info i {
+    font-size: 16px;
+}
+
+/* USD Payment Input */
+#usdPaymentGroup {
+    margin-top: 10px;
+    display: none;
+}
+
+#usdPaymentGroup.show {
+    display: block !important;
+}
+
+#usdPaymentGroup label {
+    color: #4caf50;
+    font-weight: 600;
+}
+
+#usdPaymentGroup input {
+    border-color: #4caf50;
+    background: #f1f8e9;
+}
+
+#usdPaymentGroup input:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* Change Display with Dual Currency */
+.change-amounts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.change-khr {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--success);
+}
+
+.change-usd {
+    font-weight: 600;
+    font-size: 14px;
+    color: #4caf50;
+    display: none;
+}
+
+.change-usd.show {
+    display: inline !important;
+}
+
+/* Checkout Modal Exchange Rate */
+#checkoutExchangeRateInfo {
+    display: none;
+}
+
+#checkoutExchangeRateInfo.show {
+    display: flex !important;
+}
+
+/* Receipt Amounts with Dual Currency */
+.receipt-amounts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.usd-amount {
+    font-size: 12px;
+    color: #4caf50;
+    font-weight: 600;
+    display: none;
+}
+
+.usd-amount.show {
+    display: inline !important;
+}
+
 .change-display {
     display: flex;
     justify-content: space-between;
@@ -2419,6 +2722,110 @@ body {
 
 .toast.warning::after {
     background: linear-gradient(90deg, rgba(243, 156, 18, 0.95), rgba(243, 156, 18, 0.35));
+}
+
+/* ========================================
+   CUSTOMIZATION MODAL STYLES
+   ======================================== */
+.modal-content.customization-modal {
+    max-width: 500px;
+    padding: 0;
+}
+
+.customization-content {
+    padding: 20px;
+}
+
+.custom-product-info {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 25px;
+}
+
+.custom-product-info h3 {
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.custom-product-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.customization-section {
+    margin-bottom: 30px;
+}
+
+.customization-section h4 {
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.customization-section h4 i {
+    color: var(--primary);
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 15px;
+    text-align: left;
+    width: 100%;
+}
+
+.option-btn:hover {
+    border-color: var(--primary);
+    background: rgba(111, 78, 55, 0.05);
+}
+
+.option-btn.selected {
+    border-color: var(--primary);
+    background: rgba(111, 78, 55, 0.1);
+    box-shadow: 0 2px 8px rgba(111, 78, 55, 0.2);
+}
+
+.option-btn i {
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.option-btn .fa-check-circle {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.option-btn.selected .fa-check-circle {
+    opacity: 1;
+}
+
+/* Receipt Item Customization */
+.receipt-item-custom {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    font-weight: 600;
+    font-style: italic;
 }
 
 /* ========================================
@@ -2656,44 +3063,6 @@ body {
         display: none;
     }
 
-    /* Mobile Cart Toggle Button */
-    .mobile-cart-toggle {
-        display: block;
-        position: fixed;
-        top: 15px;
-        right: 15px;
-        z-index: 999;
-        width: 44px;
-        height: 44px;
-        background: var(--success);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 20px;
-        cursor: pointer;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .mobile-cart-toggle.hidden {
-        display: none;
-    }
-
-    .cart-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: var(--danger);
-        color: white;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        font-size: 11px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
     /* Overlay when sidebar is open */
     .sidebar-overlay {
         display: none;
@@ -2927,44 +3296,6 @@ body {
 
     .mobile-menu-toggle.hidden {
         display: none;
-    }
-
-    /* Mobile Cart Toggle Button */
-    .mobile-cart-toggle {
-        display: block;
-        position: fixed;
-        top: 15px;
-        right: 15px;
-        z-index: 999;
-        width: 44px;
-        height: 44px;
-        background: var(--success);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 20px;
-        cursor: pointer;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .mobile-cart-toggle.hidden {
-        display: none;
-    }
-
-    .cart-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: var(--danger);
-        color: white;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        font-size: 11px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
     /* Overlay when sidebar is open */
@@ -3423,9 +3754,11 @@ body {
     }
 
     .top-products-chart-container {
-        width: 280px;
-        height: 280px;
-        padding: 15px;
+        width: 100%;
+        max-width: 450px;
+        height: 450px;
+        padding: 20px;
+        margin: 20px auto;
     }
 
     .top-product-item {
@@ -3508,7 +3841,6 @@ body {
         padding: 12px;
     }
 
-    /* Checkout Modal */
     .checkout-content {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -3731,28 +4063,6 @@ body {
     }
 
     .mobile-menu-toggle.hidden {
-        display: none;
-    }
-
-    /* Mobile Cart Toggle Button */
-    .mobile-cart-toggle {
-        display: block;
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        z-index: 999;
-        width: 40px;
-        height: 40px;
-        background: var(--success);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 18px;
-        cursor: pointer;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .mobile-cart-toggle.hidden {
         display: none;
     }
 
@@ -3989,6 +4299,162 @@ body {
     margin-left: 4px;
 }
 
+/* ── Modern Role Card Design ───────────────────────────────────────────── */
+
+.roles-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.role-card-modern {
+    background: var(--card-bg, #fff);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.25s ease;
+}
+
+.role-card-modern:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.role-card-header-modern {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.role-card-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.role-card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.role-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.role-card-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text, #2c2c2c);
+}
+
+.role-card-name {
+    font-size: 0.78rem;
+    color: var(--text-light, #888);
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+}
+
+.role-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.role-card-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border, #e0e0e0);
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: var(--text-light, #888);
+}
+
+.role-card-action-btn:hover {
+    border-color: var(--primary, #6f4e37);
+    color: var(--primary, #6f4e37);
+    background: rgba(111, 78, 55, 0.05);
+}
+
+.role-card-action-btn-danger {
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.role-card-action-btn-danger:hover {
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.role-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-light, #888);
+    margin: 8px 0 12px;
+    line-height: 1.5;
+}
+
+/* ── Modern Buttons ────────────────────────────────────────────────────── */
+
+.roles-manager-toolbar-modern {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-modern-primary {
+    background: var(--primary, #6f4e37);
+    color: white;
+}
+
+.btn-modern-primary:hover {
+    background: #5a3e2e;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+}
+
+.btn-modern-outline {
+    background: white;
+    color: var(--primary, #6f4e37);
+    border: 1.5px solid var(--primary, #6f4e37);
+}
+
+.btn-modern-outline:hover {
+    background: rgba(111, 78, 55, 0.05);
+    transform: translateY(-1px);
+}
+
 /* Buttons */
 .btn {
     display: inline-flex;
@@ -4055,11 +4521,93 @@ body {
 /* Permission checkboxes grid (dynamic, in user modal) */
 .perm-checks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
-    margin-top: 6px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+    padding: 0;
 }
 
+/* Permission menu items - clean modern style */
+.permission-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border-radius: 8px;
+    background: #fafafa;
+    color: var(--text, #555);
+    border: 2px solid #e8e8e8;
+    position: relative;
+}
+
+.permission-menu-item:hover {
+    background: #f0f0f0;
+    border-color: #d0d0d0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.permission-menu-item.active {
+    background: rgba(111, 78, 55, 0.08);
+    border-color: var(--primary, #6f4e37);
+    color: var(--primary, #6f4e37);
+    box-shadow: 0 2px 10px rgba(111, 78, 55, 0.15);
+}
+
+.permission-menu-item input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: var(--primary, #6f4e37);
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.permission-menu-item i {
+    font-size: 1.2rem;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: rgba(111, 78, 55, 0.1);
+    color: var(--primary, #6f4e37);
+    transition: all 0.25s ease;
+}
+
+.permission-menu-item.active i {
+    background: var(--primary, #6f4e37);
+    color: white;
+}
+
+.permission-menu-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.permission-menu-item.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.permission-menu-item.locked:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive - single column on small screens */
+@media (max-width: 600px) {
+    .perm-checks-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Old permission check item style (keep for compatibility) */
 .perm-check-item {
     display: flex;
     align-items: center;
@@ -4177,6 +4725,89 @@ body {
     color: var(--text-light);
     font-size: 0.9rem;
     margin-bottom: 20px;
+}
+
+/* Exchange Rate Settings */
+.exchange-rate-settings {
+    max-width: 500px;
+}
+
+.exchange-rate-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.exchange-rate-input-group input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: 'Kantumruy Pro', sans-serif;
+}
+
+.exchange-rate-input-group input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.1);
+}
+
+.exchange-rate-unit {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    min-width: 40px;
+}
+
+.exchange-rate-hint {
+    margin-top: 10px;
+    color: var(--text-light);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.exchange-rate-hint i {
+    color: var(--warning);
+}
+
+.exchange-rate-hint strong {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+#saveExchangeRateBtn {
+    margin-top: 20px;
+}
+
+/* Settings Actions */
+.settings-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: var(--bg);
+    border-radius: 10px;
+    border: 2px dashed var(--border);
+}
+
+.settings-hint {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.settings-hint::before {
+    content: '\f05a';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--primary);
 }
 
 /* Logo Management */

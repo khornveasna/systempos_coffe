@@ -47,15 +47,22 @@ class OrderModel {
     }
 
     create(orderData) {
-        const { items, subtotal, discountPercent = 0, discountAmount = 0, total, paymentMethod = 'cash', userId, userName } = orderData;
+        const { 
+            items, subtotal, discountPercent = 0, discountAmount = 0, total, 
+            totalUSD = 0, paymentMethod = 'cash', 
+            amountReceived = 0, amountReceivedUSD = 0, 
+            changeAmount = 0, changeAmountUSD = 0, 
+            exchangeRate = 4000,
+            userId, userName 
+        } = orderData;
         const id = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const receiptNumber = databaseService.generateReceiptNumber();
         const date = new Date().toISOString();
 
         this.db.prepare(`
-            INSERT INTO orders (id, receiptNumber, date, items, subtotal, discountPercent, discountAmount, total, paymentMethod, userId, userName)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(id, receiptNumber, date, JSON.stringify(items), subtotal, discountPercent, discountAmount, total, paymentMethod, userId, userName);
+            INSERT INTO orders (id, receiptNumber, date, items, subtotal, discountPercent, discountAmount, total, totalUSD, paymentMethod, amountReceived, amountReceivedUSD, changeAmount, changeAmountUSD, exchangeRate, userId, userName)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(id, receiptNumber, date, JSON.stringify(items), subtotal, discountPercent, discountAmount, total, totalUSD, paymentMethod, amountReceived, amountReceivedUSD, changeAmount, changeAmountUSD, exchangeRate, userId, userName);
 
         return this.findById(id);
     }

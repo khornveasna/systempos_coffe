@@ -1,4 +1,4 @@
-// POS: products grid, cart, checkout, print receipt
+﻿// POS: products grid, cart, checkout, print receipt
 
 CoffeePOS.prototype.renderProducts = function () {
     const grid       = document.getElementById('productsGrid');
@@ -38,7 +38,41 @@ CoffeePOS.prototype.addToCart = function (productId) {
     const product = this.data.products.find(p => String(p.id) === String(productId));
     if (!product) return;
 
-    const existing = this.cart.find(item => item.id === productId);
+    // Open customization modal
+    this.openCustomizationModal(product);
+};
+
+CoffeePOS.prototype.openCustomizationModal = function (product) {
+    const modal = document.getElementById('customizationModal');
+    if (!modal) {
+        // Fallback: add directly to cart if modal doesn't exist
+        this.addDirectToCart(product);
+        return;
+    }
+
+    // Set product info
+    document.getElementById('customProductName').textContent = product.name;
+    document.getElementById('customProductPrice').textContent = formatCurrency(product.salePrice && product.salePrice > 0 ? product.salePrice : product.price);
+
+    // Reset selections
+    document.querySelectorAll('#customizationModal .option-btn').forEach(btn => btn.classList.remove('selected'));
+    document.querySelector('[data-sugar="normal"]').classList.add('selected');
+    document.querySelector('[data-ice="normal"]').classList.add('selected');
+
+    // Store product temporarily
+    this.pendingCustomization = product;
+
+    // Show modal
+    modal.classList.add('active');
+};
+
+CoffeePOS.prototype.addDirectToCart = function (product, sugarLevel = 'normal', iceLevel = 'normal') {
+    const existing = this.cart.find(item => 
+        item.id === product.id && 
+        item.sugarLevel === sugarLevel && 
+        item.iceLevel === iceLevel
+    );
+    
     if (existing) {
         existing.quantity++;
     } else {
@@ -49,12 +83,42 @@ CoffeePOS.prototype.addToCart = function (productId) {
             originalPrice: product.price,
             quantity:      1,
             image:         product.image,
-            icon:          product.icon
+            icon:          product.icon,
+            sugarLevel:    sugarLevel,
+            iceLevel:      iceLevel
         });
     }
     this.renderCart();
     this.showToast(`បានបន្ថែម ${product.name} ចូលរទេះ!`, 'success');
 };
+
+CoffeePOS.prototype.confirmCustomization = function () {
+    if (!this.pendingCustomization) return;
+
+    const sugarBtn = document.querySelector('#customizationModal [data-sugar].selected');
+    const iceBtn = document.querySelector('#customizationModal [data-ice].selected');
+
+    const sugarLevel = sugarBtn ? sugarBtn.dataset.sugar : 'normal';
+    const iceLevel = iceBtn ? iceBtn.dataset.ice : 'normal';
+
+    this.addDirectToCart(this.pendingCustomization, sugarLevel, iceLevel);
+    this.closeAllModals();
+    this.pendingCustomization = null;
+};
+
+CoffeePOS.prototype.selectOption = function (button) {
+    // Get the option group
+    const optionGroup = button.parentElement;
+    
+    // Remove selected class from all buttons in this group
+    optionGroup.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked button
+    button.classList.add('selected');
+};
+
 
 CoffeePOS.prototype.renderCart = function () {
     const cartItems = document.getElementById('cartItems');
@@ -63,12 +127,28 @@ CoffeePOS.prototype.renderCart = function () {
         cartItems.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-cart"></i><p>គ្មានមុខម្ហូបក្នុងរទេះ</p></div>`;
         document.getElementById('checkoutBtn').disabled = true;
     } else {
-        cartItems.innerHTML = this.cart.map((item, i) => `
+        cartItems.innerHTML = this.cart.map((item, i) => {
+            const sugarLabels = {
+                'normal': 'ផ្អែមម្មតា',
+                'less': 'ផ្អែមតិច',
+                'none': 'មិនផ្អែម'
+            };
+            const iceLabels = {
+                'normal': 'ទឹកកកធម្តា',
+                'less': 'ទឹកកកតិច',
+                'none': 'មិនដាក់ទឹកកក'
+            };
+
+            return `
             <div class="cart-item">
                 ${item.image ? `<img src="${item.image}" alt="${item.name}" class="cart-item-image">` : `<div class="cart-item-icon"><i class="fas ${item.icon}"></i></div>`}
                 <div class="cart-item-info">
                     <h4>${item.name}</h4>
                     <div class="cart-item-price">${formatCurrency(item.price)}</div>
+                    <div class="cart-item-customization">
+                        ${item.sugarLevel ? `<span class="customization-tag sugar-tag"><i class="fas fa-candy-cane"></i> ${sugarLabels[item.sugarLevel]}</span>` : ''}
+                        ${item.iceLevel ? `<span class="customization-tag ice-tag"><i class="fas fa-snowflake"></i> ${iceLabels[item.iceLevel]}</span>` : ''}
+                    </div>
                 </div>
                 <div class="cart-item-controls">
                     <button class="qty-btn" onclick="pos.decreaseQty(${i})">-</button>
@@ -76,13 +156,15 @@ CoffeePOS.prototype.renderCart = function () {
                     <button class="qty-btn" onclick="pos.increaseQty(${i})">+</button>
                     <button class="cart-item-remove" onclick="pos.removeFromCart(${i})"><i class="fas fa-trash"></i></button>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
         document.getElementById('checkoutBtn').disabled = false;
     }
 
     document.getElementById('cartCount').textContent = `(${this.cart.reduce((s, i) => s + i.quantity, 0)})`;
+    
+    // Always update totals and show exchange rate, even when cart is empty
     this.updateCartTotals();
-    this.updateCartBadge();
 };
 
 CoffeePOS.prototype.increaseQty    = function (i) { this.cart[i].quantity++; this.renderCart(); };
@@ -112,6 +194,19 @@ CoffeePOS.prototype._calcDiscount = function () {
 
 CoffeePOS.prototype.updateCartTotals = function () {
     const { subtotal, discountAmount, total } = this._calcDiscount();
+    
+    // Show/hide exchange rate display
+    const exchangeRateDisplay = document.getElementById('exchangeRateDisplay');
+    const cartExchangeRate = document.getElementById('cartExchangeRate');
+    if (exchangeRateDisplay && cartExchangeRate) {
+        if (showDualCurrency) {
+            exchangeRateDisplay.classList.add('show');
+            cartExchangeRate.textContent = getExchangeRate().toLocaleString();
+        } else {
+            exchangeRateDisplay.classList.remove('show');
+        }
+    }
+    
     document.getElementById('subtotal').textContent       = formatCurrency(subtotal);
     document.getElementById('discountAmount').textContent = '-' + formatCurrency(discountAmount);
     document.getElementById('total').textContent          = formatCurrency(total);
@@ -119,41 +214,115 @@ CoffeePOS.prototype.updateCartTotals = function () {
 
 CoffeePOS.prototype.openCheckout = function () {
     const { subtotal, discountPercent, discountAmount, total } = this._calcDiscount();
+    const exchangeRate = getExchangeRate();
+
+    // Show/hide exchange rate info
+    const checkoutExchangeRateInfo = document.getElementById('checkoutExchangeRateInfo');
+    const usdPaymentGroup = document.getElementById('usdPaymentGroup');
+    const changeAmountUSD = document.getElementById('changeAmountUSD');
+    const usdAmounts = document.querySelectorAll('.usd-amount');
+
+    if (showDualCurrency) {
+        checkoutExchangeRateInfo.classList.add('show');
+        usdPaymentGroup.classList.add('show');
+        changeAmountUSD.classList.add('show');
+        document.getElementById('checkoutExchangeRate').textContent = exchangeRate;
+        usdAmounts.forEach(el => el.classList.add('show'));
+    } else {
+        checkoutExchangeRateInfo.classList.remove('show');
+        usdPaymentGroup.classList.remove('show');
+        changeAmountUSD.classList.remove('show');
+        usdAmounts.forEach(el => el.classList.remove('show'));
+    }
 
     document.getElementById('receiptNumber').textContent  = generateReceiptNumber();
     document.getElementById('receiptDate').textContent    = formatDate(new Date().toISOString());
     document.getElementById('receiptServer').textContent  = this.currentUser.fullname;
-    document.getElementById('receiptItems').innerHTML     = this.cart.map(item => `
+    
+    const sugarLabels = {
+        'normal': 'ផ្អែមធម្មតា',
+        'less': 'ផ្អែមតិច',
+        'none': 'មិនផ្អែម'
+    };
+    const iceLabels = {
+        'normal': 'ទឹកកកធម្តា',
+        'less': 'ទឹកកកតិច',
+        'none': 'មិនដាក់ទឹកកក'
+    };
+    
+    document.getElementById('receiptItems').innerHTML     = this.cart.map(item => {
+        let customizations = '';
+        if (item.sugarLevel || item.iceLevel) {
+            const customTags = [];
+            if (item.sugarLevel) customTags.push(sugarLabels[item.sugarLevel]);
+            if (item.iceLevel) customTags.push(iceLabels[item.iceLevel]);
+            customizations = `<div class="receipt-item-custom">${customTags.join(' | ')}</div>`;
+        }
+        return `
         <div class="receipt-item">
             <span class="receipt-item-name">${item.name}</span>
             <span class="receipt-item-qty">x${item.quantity}</span>
             <span class="receipt-item-price">${formatCurrency(item.price * item.quantity)}</span>
-        </div>`).join('');
+            ${customizations}
+        </div>`;
+    }).join('');
+
     document.getElementById('receiptSubtotal').textContent        = formatCurrency(subtotal);
+    document.getElementById('receiptSubtotalUSD').textContent     = `($${(subtotal / exchangeRate).toFixed(2)})`;
     document.getElementById('receiptDiscountPercent').textContent = discountPercent > 0 ? discountPercent + '%' : '0%';
     document.getElementById('receiptDiscountAmount').textContent  = formatCurrency(discountAmount);
+    document.getElementById('receiptDiscountAmountUSD').textContent = `($${(discountAmount / exchangeRate).toFixed(2)})`;
     document.getElementById('receiptTotal').textContent           = formatCurrency(total);
+    document.getElementById('receiptTotalUSD').textContent        = `($${(total / exchangeRate).toFixed(2)})`;
     document.getElementById('amountReceived').value               = '';
+    document.getElementById('amountReceivedUSD').value            = '';
     document.getElementById('changeAmount').textContent           = '0៛';
+    document.getElementById('changeAmountUSD').textContent        = '($0.00)';
+    if (showDualCurrency) {
+        document.getElementById('changeAmountUSD').classList.add('show');
+    }
 
     document.getElementById('checkoutModal').classList.add('active');
 };
 
 CoffeePOS.prototype.calculateChange = function () {
     const { total } = this._calcDiscount();
-    const received  = parseFloat(document.getElementById('amountReceived').value) || 0;
-    const change    = received - total;
+    const exchangeRate = getExchangeRate();
+    const receivedKHR  = parseFloat(document.getElementById('amountReceived').value) || 0;
+    const receivedUSD  = parseFloat(document.getElementById('amountReceivedUSD').value) || 0;
+    
+    // Calculate total received (convert USD to KHR if provided)
+    const totalReceived = receivedKHR + (receivedUSD * exchangeRate);
+    const change = totalReceived - total;
+    
     document.getElementById('changeAmount').textContent = change >= 0 ? formatCurrency(change) : '0៛';
+    
+    if (showDualCurrency) {
+        const changeUSD = change / exchangeRate;
+        document.getElementById('changeAmountUSD').textContent = change >= 0 ? `($${changeUSD.toFixed(2)})` : '($0.00)';
+        document.getElementById('changeAmountUSD').classList.add('show');
+    } else {
+        document.getElementById('changeAmountUSD').classList.remove('show');
+    }
 };
 
 CoffeePOS.prototype.confirmPayment = async function () {
     const { subtotal, discountPercent, discountAmount, total } = this._calcDiscount();
-    const received = parseFloat(document.getElementById('amountReceived').value) || 0;
+    const exchangeRate = getExchangeRate();
+    const receivedKHR = parseFloat(document.getElementById('amountReceived').value) || 0;
+    const receivedUSD = parseFloat(document.getElementById('amountReceivedUSD').value) || 0;
+    
+    // Calculate total received (convert USD to KHR if provided)
+    const totalReceivedKHR = receivedKHR + (receivedUSD * exchangeRate);
+    const totalReceivedUSD = receivedUSD + (receivedKHR / exchangeRate);
 
-    if (received < total && total > 0) {
+    if (totalReceivedKHR < total && total > 0) {
         this.showToast('ចំនួនទទួលមិនគ្រប់គ្រាន់!', 'error');
         return;
     }
+
+    const changeKHR = totalReceivedKHR - total;
+    const changeUSD = changeKHR / exchangeRate;
 
     const order = {
         receiptNumber: document.getElementById('receiptNumber').textContent,
@@ -163,7 +332,13 @@ CoffeePOS.prototype.confirmPayment = async function () {
         discountPercent,
         discountAmount,
         total,
+        totalUSD: total / exchangeRate,
         paymentMethod: document.querySelector('.payment-method.active').dataset.method,
+        amountReceived: totalReceivedKHR,
+        amountReceivedUSD: totalReceivedUSD,
+        changeAmount: changeKHR,
+        changeAmountUSD: changeUSD,
+        exchangeRate: exchangeRate,
         userId:        this.currentUser.id,
         userName:      this.currentUser.fullname
     };
@@ -202,4 +377,50 @@ CoffeePOS.prototype.printReceipt = function () {
     </style></head><body><div class="receipt">${content}</div></body></html>`);
     win.document.close();
     setTimeout(() => { win.print(); win.close(); }, 250);
+};
+
+CoffeePOS.prototype.saveExchangeRate = async function () {
+    const exchangeRateInput = document.getElementById('exchangeRateInput');
+    const exchangeRate = parseFloat(exchangeRateInput.value);
+    
+    if (!exchangeRate || exchangeRate < 1000 || exchangeRate > 10000) {
+        this.showToast('អត្រាប្តូរប្រាក់ត្រូវតែនៅចន្លោះ 1,000 - 10,000', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                settings: {
+                    exchangeRate: exchangeRate
+                }
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update global exchange rate
+            setExchangeRate(exchangeRate);
+            enableDualCurrency();
+            
+            // Update display
+            const currentExchangeRate = document.getElementById('currentExchangeRate');
+            if (currentExchangeRate) {
+                currentExchangeRate.textContent = exchangeRate;
+            }
+            
+            this.showToast(`អត្រាបតូរបរាក់តរូវបានរក្ាទុក! 1 USD = ${exchangeRate} KHR`, 'success');
+
+            this.renderProducts();
+            this.renderCart();
+        } else {
+            this.showToast('មិនអាចរក្សាទុកអត្រាបតូរប្រាក់បានទេ', 'error');
+        }
+    } catch (error) {
+        console.error('Save exchange rate error:', error);
+        this.showToast('កំហុសក្នុងការរក្សាទុកអត្រាបតូរប្រាក់', 'error');
+    }
 };

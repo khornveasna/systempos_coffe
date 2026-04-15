@@ -8,6 +8,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas for capturing HTML tables -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- docx for Word export -->
+    <script src="https://unpkg.com/docx@8.2.3/build/index.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="icon" type="image/png" href="/assets/mt_logo.png">
 </head>
 <body>
@@ -66,7 +76,7 @@
                 </a>
                 <a href="#" class="nav-item" data-page="orders">
                     <i class="fas fa-receipt"></i>
-                    <span>ការលក់</span>
+                    <span>ប្រវត្តិការលក់</span>
                 </a>
                 <a href="#" class="nav-item" data-page="reports">
                     <i class="fas fa-chart-line"></i>
@@ -119,7 +129,7 @@
                     <div class="products-section">
                         <div class="search-bar">
                             <i class="fas fa-search"></i>
-                            <input type="text" id="searchProduct" placeholder="ស្វែងរកមុខម្ហូប...">
+                            <input type="text" id="searchProduct" placeholder="ស្វែងរកទំនិញ...">
                         </div>
 
                         <div class="categories" id="categoryButtons"></div>
@@ -141,11 +151,17 @@
                         <div class="cart-items" id="cartItems">
                             <div class="empty-cart">
                                 <i class="fas fa-shopping-cart"></i>
-                                <p>គ្មានមុខម្ហូបក្នុងរទេះ</p>
+                                <p>គ្មានទំនិញក្នុងរទេះ</p>
                             </div>
                         </div>
 
                         <div class="cart-summary">
+                            <!-- Exchange Rate Display -->
+                            <div class="exchange-rate-display" id="exchangeRateDisplay">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>អត្រា: 1 USD = <strong id="cartExchangeRate">4000</strong> KHR</span>
+                            </div>
+
                             <div class="summary-row">
                                 <span>ចំនួនទឹកប្រាក់:</span>
                                 <span id="subtotal">0៛</span>
@@ -181,13 +197,13 @@
             <!-- Items Management Page -->
             <div id="itemsPage" class="page hidden">
                 <header class="page-header">
-                    <h1><i class="fas fa-box"></i> គ្រប់គ្រងមុខម្ហូប</h1>
+                    <h1><i class="fas fa-box"></i> គ្រប់គ្រងទំនិញ</h1>
                     <div class="header-actions">
                         <button type="button" id="addCategoryBtn" class="btn-action-primary">
                             <i class="fas fa-tags"></i> បន្ថែមប្រភេទ
                         </button>
                         <button id="addItemBtn" class="btn-action">
-                            <i class="fas fa-plus"></i> បន្ថែមមុខម្ហូប
+                            <i class="fas fa-plus"></i> បន្ថែមទំនិញ
                         </button>
                     </div>
                 </header>
@@ -198,7 +214,7 @@
                         <i class="fas fa-tags"></i> ប្រភេទ
                     </button>
                     <button type="button" class="items-view-btn" data-items-view="items" aria-selected="false">
-                        <i class="fas fa-utensils"></i> មុខម្ហូប
+                        <i class="fas fa-utensils"></i> ទំនិញ
                     </button>
                 </div>
 
@@ -213,7 +229,7 @@
                         <div class="search-filter">
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" id="searchItem" placeholder="ស្វែងរកមុខម្ហូប...">
+                                <input type="text" id="searchItem" placeholder="ស្វែងរកទំនិញ...">
                             </div>
                             <select id="filterCategory" class="filter-select">
                                 <option value="all">គ្រប់ប្រភេទ</option>
@@ -237,13 +253,35 @@
                     <h1><i class="fas fa-receipt"></i> ប្រវត្តិការលក់</h1>
                     <div class="header-actions">
                         <div class="date-range-filter">
-                            <input type="date" id="orderStartDate" class="date-filter" placeholder="From">
-                            <span>ដល់</span>
-                            <input type="date" id="orderEndDate" class="date-filter" placeholder="To">
+                            <select id="orderSellerFilter" class="seller-filter">
+                                <option value="">អ្នកលក់ទាំងអស់</option>
+                            </select>
+                            <select id="orderDateQuickFilter" class="date-quick-filter">
+                                <option value="today">ថ្ងៃនេះ</option>
+                                <option value="week">សប្ដាហ៍នេះ</option>
+                                <option value="month">ខែនេះ</option>
+                                <option value="custom">កំណត់ថ្ងៃ</option>
+                            </select>
+                            <input type="date" id="orderStartDate" class="date-filter" placeholder="ពីថ្ងៃ" style="display:none;">
+                            <span class="to-separator" style="display:none;">ដល់</span>
+                            <input type="date" id="orderEndDate" class="date-filter" placeholder="ដល់ថ្ងៃ" style="display:none;">
                         </div>
-                        <button id="exportOrdersBtn" class="btn-action">
-                            <i class="fas fa-download"></i> Export
-                        </button>
+                        <div class="export-dropdown">
+                            <button id="exportOrdersBtn" class="btn-action">
+                                <i class="fas fa-download"></i> Export Report <i class="fas fa-caret-down"></i>
+                            </button>
+                            <div class="export-menu" id="exportMenu">
+                                <button onclick="pos.exportOrdersWord()">
+                                    <i class="fas fa-file-word"></i> Export Word
+                                </button>
+                                <button onclick="pos.exportOrdersExcel()">
+                                    <i class="fas fa-file-excel"></i> Export Excel
+                                </button>
+                                <button onclick="pos.exportOrdersPDF()">
+                                    <i class="fas fa-file-pdf"></i> Export PDF
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </header>
 
@@ -254,11 +292,11 @@
                                 <th>ល.រ</th>
                                 <th>លេខវិក័យបត្រ</th>
                                 <th>កាលបរិច្ឆេទ</th>
-                                <th>មុខម្ហូប</th>
+                                <th>ទំនិញ</th>
                                 <th>ចំនួន</th>
                                 <th>សរុប</th>
                                 <th>បញ្ចុះ</th>
-                                <th>អ្នកបម្រើ</th>
+                                <th>អ្នកលក់</th>
                                 <th>សកម្មភាព</th>
                             </tr>
                         </thead>
@@ -274,25 +312,17 @@
                 <header class="page-header">
                     <h1><i class="fas fa-chart-line"></i> របាយការណ៍</h1>
                     <div class="header-actions">
-                        <select id="reportPeriod" class="period-select">
+                        <select id="reportDateQuickFilter" class="date-quick-filter">
                             <option value="today">ថ្ងៃនេះ</option>
-                            <option value="yesterday">ម្សិលមិញ</option>
-                            <option value="week">សប្តាហ៍នេះ</option>
-                            <option value="lastWeek">សប្តាហ៍មុន</option>
+                            <option value="week">សប្ដាហ៍នេះ</option>
                             <option value="month">ខែនេះ</option>
-                            <option value="lastMonth">ខែមុន</option>
-                            <option value="year">ឆ្នាំនេះ</option>
-                            <option value="lastYear">ឆ្នាំមុន</option>
-                            <option value="custom">កំណត់ខ្លួនឯង</option>
+                            <option value="custom">កំណត់ថ្ងៃ</option>
                         </select>
-                        <div id="customDateRange" class="custom-date-range hidden">
-                            <input type="date" id="customStartDate" class="date-filter">
-                            <span>ដល់</span>
-                            <input type="date" id="customEndDate" class="date-filter">
+                        <div id="customDateRange" class="custom-date-range">
+                            <input type="date" id="customStartDate" class="date-filter" style="display:none;">
+                            <span class="to-separator" style="display:none;">ដល់</span>
+                            <input type="date" id="customEndDate" class="date-filter" style="display:none;">
                         </div>
-                        <button id="generateReportBtn" class="btn-action">
-                            <i class="fas fa-sync"></i> ធ្វើឡើងវិញ
-                        </button>
                     </div>
                 </header>
 
@@ -325,7 +355,7 @@
                                 <i class="fas fa-coffee"></i>
                             </div>
                             <div class="report-info">
-                                <h4>មុខម្ហូបលក់ដាច់</h4>
+                                <h4>ទំនិញលក់ដាច់</h4>
                                 <h2 id="topProduct">-</h2>
                             </div>
                         </div>
@@ -353,7 +383,7 @@
                                     <span id="reportTotalDiscount">0៛</span>
                                 </div>
                                 <div class="stat-box">
-                                    <label>ចំនួនមុខម្ហូបលក់</label>
+                                    <label>ចំនួនទំនិញលក់</label>
                                     <span id="reportItemsSold">0</span>
                                 </div>
                                 <div class="stat-box">
@@ -364,7 +394,7 @@
                         </div>
 
                         <div class="report-section">
-                            <h3><i class="fas fa-trophy"></i> មុខម្ហូបលក់ដាច់ 5 មុខ</h3>
+                            <h3><i class="fas fa-trophy"></i> ទំនិញលក់ដាច់ 5 មុខ</h3>
                             <div class="top-products-container">
                                 <div class="top-products" id="topProductsList">
                                     <!-- Top products will be loaded here -->
@@ -445,12 +475,106 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Exchange Rate Section -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-exchange-alt"></i> អត្រាប្តូរប្រាក់ (KHR/USD)</h3>
+                        <p class="settings-description">កំណត់អត្រាប្តូរប្រាក់រវាងរៀល និងដុល្លារអាមេរិក</p>
+
+                        <div class="exchange-rate-settings">
+                            <div class="form-group">
+                                <label for="exchangeRateInput">
+                                    <i class="fas fa-dollar-sign"></i> 1 USD = ? KHR
+                                </label>
+                                <div class="exchange-rate-input-group">
+                                    <input 
+                                        type="number" 
+                                        id="exchangeRateInput" 
+                                        class="form-control" 
+                                        placeholder="4000" 
+                                        min="1000" 
+                                        max="10000" 
+                                        step="100"
+                                        value="4000">
+                                    <span class="exchange-rate-unit">KHR</span>
+                                </div>
+                                <p class="exchange-rate-hint">
+                                    <i class="fas fa-info-circle"></i> អត្រាបច្ចុប្បន្: 1 USD = <span id="currentExchangeRate">4000</span> KHR
+                                </p>
+                            </div>
+                            <button class="btn-action" id="saveExchangeRateBtn" onclick="pos.saveExchangeRate()">
+                                <i class="fas fa-save"></i> រក្សាទុកអត្រាប្តូរប្រាក់
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Checkout Modal -->
+    <!-- Customization Modal -->
+    <div id="customizationModal" class="modal">
+        <div class="modal-content customization-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-sliders-h"></i> កំណត់ជម្រើស</h2>
+                <button type="button" class="modal-close" aria-label="Close customization modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="customization-content">
+                    <!-- Product Info -->
+                    <div class="custom-product-info">
+                        <h3 id="customProductName">-</h3>
+                        <p id="customProductPrice" class="custom-product-price">0៛</p>
+                    </div>
+
+                    <!-- Sugar Level -->
+                    <div class="customization-section">
+                        <h4><i class="fas fa-candy-cane"></i> កម្រិតផ្អែម</h4>
+                        <div class="option-group sugar-options">
+                            <button type="button" class="option-btn selected" data-sugar="normal" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ផ្អែមធម្មតា</span>
+                            </button>
+                            <button type="button" class="option-btn" data-sugar="less" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ផ្អែមតិច</span>
+                            </button>
+                            <button type="button" class="option-btn" data-sugar="none" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>មិនផ្អែម</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ice Level -->
+                    <div class="customization-section">
+                        <h4><i class="fas fa-snowflake"></i> កម្រិតទឹកកក</h4>
+                        <div class="option-group ice-options">
+                            <button type="button" class="option-btn selected" data-ice="normal" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ទឹកកកធម្មតា</span>
+                            </button>
+                            <button type="button" class="option-btn" data-ice="less" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ទឹកកកតិច</span>
+                            </button>
+                            <button type="button" class="option-btn" data-ice="none" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>មិនដាក់ទឹកកក</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel modal-close">បោះបង់</button>
+                <button type="button" class="btn-confirm" onclick="pos.confirmCustomization()">
+                    <i class="fas fa-cart-plus"></i> បន្ថែមចូលរទេះ
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="checkoutModal" class="modal">
         <div class="modal-content checkout-modal">
             <div class="modal-header">
@@ -466,7 +590,7 @@
                                 <p>ប្រព័ន្ធគ្រប់គ្រងហាងកាហ្វេ</p>
                                 <p class="receipt-number">លេខវិក័យបត្រ: <span id="receiptNumber"></span></p>
                                 <p class="receipt-date">កាលបរិច្ឆេទ: <span id="receiptDate"></span></p>
-                                <p class="receipt-server">អ្នកបម្រើ: <span id="receiptServer"></span></p>
+                                <p class="receipt-server">អ្នកលក់: <span id="receiptServer"></span></p>
                             </div>
                             <div class="receipt-divider"></div>
                             <div class="receipt-items" id="receiptItems"></div>
@@ -474,7 +598,10 @@
                             <div class="receipt-totals">
                                 <div class="receipt-row">
                                     <span>ចំនួនទឹកប្រាក់:</span>
-                                    <span id="receiptSubtotal">0៛</span>
+                                    <div class="receipt-amounts">
+                                        <span id="receiptSubtotal">0៛</span>
+                                        <span id="receiptSubtotalUSD" class="usd-amount" style="display: none;">($0.00)</span>
+                                    </div>
                                 </div>
                                 <div class="receipt-row discount">
                                     <span>បញ្ចុះ (%):</span>
@@ -482,11 +609,17 @@
                                 </div>
                                 <div class="receipt-row discount">
                                     <span>បញ្ចុះ (៛):</span>
-                                    <span id="receiptDiscountAmount">0៛</span>
+                                    <div class="receipt-amounts">
+                                        <span id="receiptDiscountAmount">0៛</span>
+                                        <span id="receiptDiscountAmountUSD" class="usd-amount" style="display: none;">($0.00)</span>
+                                    </div>
                                 </div>
                                 <div class="receipt-row total">
                                     <span>សរុប:</span>
-                                    <span id="receiptTotal">0៛</span>
+                                    <div class="receipt-amounts">
+                                        <span id="receiptTotal">0៛</span>
+                                        <span id="receiptTotalUSD" class="usd-amount" style="display: none;">($0.00)</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -512,16 +645,33 @@
                             </button>
                         </div>
                         <div class="payment-form">
+                            <!-- Exchange Rate Info -->
+                            <div class="exchange-rate-info" id="checkoutExchangeRateInfo" style="display: none;">
+                                <i class="fas fa-info-circle"></i>
+                                <span>អត្រាប្តូរប្រាក់: 1 USD = <strong id="checkoutExchangeRate">4000</strong> KHR</span>
+                            </div>
+                            
+                            <!-- KHR Input -->
                             <div class="form-group">
                                 <label>ចំនួនទទួល (៛):</label>
                                 <input type="number" id="amountReceived" placeholder="0" min="0">
                             </div>
+                            
+                            <!-- USD Input -->
+                            <div class="form-group" id="usdPaymentGroup" style="display: none;">
+                                <label>ឬ ចំនួនទទួល ($):</label>
+                                <input type="number" id="amountReceivedUSD" placeholder="0.00" min="0" step="0.01">
+                            </div>
+                            
                             <div class="change-display">
                                 <div class="change-label">
                                     <i class="fas fa-coins"></i>
                                     <span>ប្រាក់អាប់:</span>
                                 </div>
-                                <span id="changeAmount">0៛</span>
+                                <div class="change-amounts">
+                                    <span id="changeAmount" class="change-khr">0៛</span>
+                                    <span id="changeAmountUSD" class="change-usd" style="display: none;">($0.00)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -540,7 +690,7 @@
     <div id="itemModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="itemModalTitle"><i class="fas fa-plus"></i> បន្ថែមមុខម្ហូប</h2>
+                <h2 id="itemModalTitle"><i class="fas fa-plus"></i> បន្ថែមទំនិញ</h2>
                 <button type="button" class="modal-close" aria-label="Close category modal">&times;</button>
             </div>
             <form id="itemForm">
@@ -548,7 +698,7 @@
                     <input type="hidden" id="itemId">
                     
                     <div class="form-group image-upload-group">
-                        <label>រូបភាពមុខម្ហូប</label>
+                        <label>រូបភាពទំនិញ</label>
                         <div class="image-upload">
                             <input type="file" id="itemImageFile" accept="image/*" onchange="pos.previewImage(this)">
                             <input type="hidden" id="itemImage">
@@ -563,7 +713,7 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>ឈ្មោះមុខម្ហូប *</label>
+                            <label>ឈ្មោះទំនិញ *</label>
                             <input type="text" id="itemName" required placeholder="បញ្ចូលឈ្មោះ">
                         </div>
                         <div class="form-group">
@@ -672,13 +822,11 @@
                     <div class="form-group">
                         <label>តួនាទី *</label>
                         <select id="userRole" required onchange="pos.onRoleChange(this.value)">
-                            <option value="staff">បុគ្គលិក</option>
-                            <option value="manager">អ្នកគ្រប់គ្រងរង</option>
-                            <option value="admin">Admin</option>
+                            <option value="">កំពុងផ្ទុកតួនាទី...</option>
                         </select>
                         <div id="roleDescription" class="role-description staff">
                             <i class="fas fa-info-circle"></i>
-                            <span id="roleDescText">លក់ POS និងមើលការលក់</span>
+                            <span id="roleDescText">ជ្រើសរើសតួនាទី</span>
                         </div>
                     </div>
 
@@ -695,17 +843,6 @@
                         <small class="perm-note">
                             <i class="fas fa-info-circle"></i> Admin នឹងទទួលបានសិទ្ធិទាំងអស់ដោយស្វ័យប្រវត្តិ
                         </small>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>កាលបរិច្ឆេទចាប់ផ្តើម</label>
-                            <input type="datetime-local" id="userStartDate">
-                        </div>
-                        <div class="form-group">
-                            <label>កាលបរិច្ឆេទបញ្ចប់</label>
-                            <input type="datetime-local" id="userEndDate">
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

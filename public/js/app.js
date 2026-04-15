@@ -81,43 +81,10 @@ class CoffeePOS {
                     button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 }
                 if (typeof this.updateCategoryIndicator === 'function') {
-
-            const itemsCategoryButtons = document.getElementById('itemsCategoryButtons');
-            if (itemsCategoryButtons) {
-                itemsCategoryButtons.addEventListener('click', event => {
-                    const button = event.target.closest('.category-btn');
-                    if (!button) return;
-
-                    itemsCategoryButtons.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    button.classList.add('active');
-                    this.currentItemsCategory = button.dataset.category;
-
-                    const filterCategory = document.getElementById('filterCategory');
-                    if (filterCategory) filterCategory.value = this.currentItemsCategory;
-
-                    if (typeof button.scrollIntoView === 'function') {
-                        button.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                    }
-                    if (typeof this.updateCategoryIndicator === 'function') {
-                        this.updateCategoryIndicator('itemsCategoryButtons');
-                    }
-                    if (typeof this.saveItemsViewState === 'function') {
-                        this.saveItemsViewState();
-                    }
-                    this.renderItems();
-                });
-
-                itemsCategoryButtons.addEventListener('wheel', event => {
-                    if (!event.deltaY) return;
-                    event.preventDefault();
-                    itemsCategoryButtons.scrollLeft += event.deltaY;
-                }, { passive: false });
-            }
                     this.updateCategoryIndicator();
                 }
                 this.renderProducts();
             });
-                    this.updateCategoryIndicator('itemsCategoryButtons');
 
             categoryButtons.addEventListener('wheel', event => {
                 if (!event.deltaY) return;
@@ -152,6 +119,11 @@ class CoffeePOS {
         document.getElementById('checkoutBtn').addEventListener('click', () => this.openCheckout());
         document.getElementById('confirmPaymentBtn').addEventListener('click', () => this.confirmPayment());
         document.getElementById('amountReceived').addEventListener('input', () => this.calculateChange());
+        // Add event listener for USD payment input
+        const amountReceivedUSD = document.getElementById('amountReceivedUSD');
+        if (amountReceivedUSD) {
+            amountReceivedUSD.addEventListener('input', () => this.calculateChange());
+        }
         document.querySelectorAll('.payment-method').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.payment-method').forEach(b => b.classList.remove('active'));
@@ -223,20 +195,14 @@ class CoffeePOS {
         // Orders
         document.getElementById('orderStartDate').addEventListener('change', () => this.renderOrders());
         document.getElementById('orderEndDate').addEventListener('change', () => this.renderOrders());
-        document.getElementById('exportOrdersBtn').addEventListener('click', () => this.exportOrders());
+        document.getElementById('orderSellerFilter').addEventListener('change', () => this.renderOrders());
+
+        // Initialize export dropdown
+        this.initExportDropdown();
+
         document.getElementById('printOrderBtn').addEventListener('click', () => this.printOrder());
 
         // Reports
-        document.getElementById('generateReportBtn').addEventListener('click', () => this.generateReports());
-        document.getElementById('reportPeriod').addEventListener('change', () => {
-            const customRange = document.getElementById('customDateRange');
-            if (document.getElementById('reportPeriod').value === 'custom') {
-                customRange.classList.remove('hidden');
-            } else {
-                customRange.classList.add('hidden');
-            }
-            this.generateReports();
-        });
         document.getElementById('customStartDate').addEventListener('change', () => this.generateReports());
         document.getElementById('customEndDate').addEventListener('change', () => this.generateReports());
 
@@ -296,13 +262,7 @@ class CoffeePOS {
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', () => this.toggleSidebar());
         }
-        
-        // Mobile cart toggle
-        const mobileCartToggle = document.getElementById('mobileCartToggle');
-        if (mobileCartToggle) {
-            mobileCartToggle.addEventListener('click', () => this.toggleCart());
-        }
-        
+
         // Close sidebar when clicking nav items on mobile
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -348,8 +308,15 @@ class CoffeePOS {
                 }
                 this.renderItems();
                 break;
-            case 'orders':  this.renderOrders();    break;
-            case 'reports': this.generateReports(); break;
+            case 'orders':
+                this.populateSellerFilter();
+                this.renderOrders();
+                this.initQuickDateFilter();
+                break;
+            case 'reports':
+                this.generateReports();
+                this.initReportDateFilter();
+                break;
             case 'users':   this.renderUsers();     break;
             case 'settings': if (this.settingsModule) this.settingsModule.loadSettings(); break;
         }
@@ -388,23 +355,8 @@ class CoffeePOS {
     toggleCart() {
         const cartSection = document.querySelector('.cart-section');
         if (!cartSection) return;
-        
-        cartSection.classList.toggle('active');
-    }
 
-    updateCartBadge() {
-        const badge = document.getElementById('cartBadge');
-        if (!badge) return;
-        
-        const totalItems = this.cart.reduce((sum, item) => sum + item.qty, 0);
-        badge.textContent = totalItems;
-        
-        // Show/hide badge based on count
-        if (totalItems > 0) {
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
+        cartSection.classList.toggle('active');
     }
 
     showToast(message, type = 'success') {

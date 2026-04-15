@@ -62,7 +62,46 @@ try {
         console.log('');
     });
 
-    console.log('✅ Migration completed successfully!\n');
+    // Migrate orders table for dual currency support
+    console.log('\n💱 Migrating orders table for dual currency support...');
+    const ordersTableInfo = db.pragma("table_info('orders')");
+    const orderColumns = ordersTableInfo.map(col => col.name);
+
+    const columnsToAdd = [
+        { name: 'totalUSD', sql: 'ALTER TABLE orders ADD COLUMN totalUSD REAL DEFAULT 0' },
+        { name: 'amountReceived', sql: 'ALTER TABLE orders ADD COLUMN amountReceived REAL DEFAULT 0' },
+        { name: 'amountReceivedUSD', sql: 'ALTER TABLE orders ADD COLUMN amountReceivedUSD REAL DEFAULT 0' },
+        { name: 'changeAmount', sql: 'ALTER TABLE orders ADD COLUMN changeAmount REAL DEFAULT 0' },
+        { name: 'changeAmountUSD', sql: 'ALTER TABLE orders ADD COLUMN changeAmountUSD REAL DEFAULT 0' },
+        { name: 'exchangeRate', sql: 'ALTER TABLE orders ADD COLUMN exchangeRate REAL DEFAULT 4000' }
+    ];
+
+    columnsToAdd.forEach(col => {
+        if (!orderColumns.includes(col.name)) {
+            console.log(`  ➕ Adding "${col.name}" column to orders table...`);
+            db.exec(col.sql);
+            console.log(`  ✅ Column "${col.name}" added!`);
+        } else {
+            console.log(`  ✓ Column "${col.name}" already exists`);
+        }
+    });
+
+    // Add exchange rate to settings
+    console.log('\n💱 Adding exchange rate to settings...');
+    const existingRate = db.prepare("SELECT value FROM settings WHERE key = 'exchangeRate'").get();
+    if (!existingRate) {
+        console.log('  ➕ Adding default exchange rate (4000 KHR = 1 USD)...');
+        db.prepare("INSERT INTO settings (key, value) VALUES ('exchangeRate', '4000')").run();
+        console.log('  ✅ Exchange rate added!');
+    } else {
+        console.log('  ✓ Exchange rate already exists');
+    }
+
+    console.log('\n✅ Migration completed successfully!\n');
+    console.log('📋 Summary:');
+    console.log('  - Orders table now supports dual currency (KHR/USD)');
+    console.log('  - Exchange rate setting added (default: 4000 KHR = 1 USD)');
+    console.log('  - You can now configure exchange rate in Settings page\n');
 
 } catch (error) {
     console.error('❌ Migration error:', error.message);

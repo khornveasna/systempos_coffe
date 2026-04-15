@@ -3,9 +3,6 @@
 CoffeePOS.prototype.initSocket = function () {
     this.socket = io();
 
-    this.socket.on('connect',    () => console.log('🔌 Connected to real-time server'));
-    this.socket.on('disconnect', () => console.log('🔌 Disconnected from real-time server'));
-
     this.socket.on('user-status',      data => this.handleUserStatus(data));
     this.socket.on('user-created',     data => this.handleUserCreated(data));
     this.socket.on('user-updated',     data => this.handleUserUpdated(data));
@@ -25,19 +22,16 @@ CoffeePOS.prototype.handleUserStatus = function (data) {
         this.showToast(`${data.fullname} បានចូលប្រើប្រាស់ (${data.onlineCount} អ្នក)`, 'success');
     } else {
         this.onlineUsers.delete(data.userId);
-        console.log(`📊 Online users: ${data.onlineCount}`);
     }
 };
 
 CoffeePOS.prototype.handleUserCreated = function (data) {
-    console.log('👤 User created:', data);
-    this.showToast('អ្នកប្រើប្រាស់ថ្មីត្រូវបានបន្ថែម!', 'success');
+    this.showToast('អ្នកប្រើបរាស់ថ្មីត្រូវបានបន្ថែម!', 'success');
     if (this.currentPage === 'users') this.renderUsers();
 };
 
 CoffeePOS.prototype.handleUserUpdated = function (data) {
-    console.log('👤 User updated:', data);
-    this.showToast('អ្នកប្រើប្រាស់ត្រូវបានកែសម្រួល!', 'success');
+    this.showToast('អ្នកបរើប្រាស់ត្រូវបានកែសម្រួល!', 'success');
     if (this.currentPage === 'users') this.renderUsers();
     if (this.currentUser && data.id === this.currentUser.id) {
         this.currentUser.role        = data.role;
@@ -46,41 +40,35 @@ CoffeePOS.prototype.handleUserUpdated = function (data) {
 };
 
 CoffeePOS.prototype.handleUserDeleted = function (data) {
-    console.log('👤 User deleted:', data);
     this.showToast('អ្នកប្រើប្រាស់ត្រូវបានលុប!', 'warning');
     if (this.currentPage === 'users') this.renderUsers();
 };
 
 CoffeePOS.prototype.handleOrderCreated = function (data) {
-    console.log('🛒 Order created:', data);
     this.showToast('ការលក់ថ្មីត្រូវបានបង្កើត!', 'success');
     if (this.currentPage === 'orders')  this.renderOrders();
     if (this.currentPage === 'reports') this.generateReports();
 };
 
 CoffeePOS.prototype.handleOrderDeleted = function (data) {
-    console.log('🗑️ Order deleted:', data);
     this.showToast('ការលក់ត្រូវបានលុប!', 'warning');
     if (this.currentPage === 'orders')  this.renderOrders();
     if (this.currentPage === 'reports') this.generateReports();
 };
 
 CoffeePOS.prototype.handleProductCreated = function (data) {
-    console.log('📦 Product created:', data);
     this.showToast('មុខម្ហូបថ្មីត្រូវបានបន្ថែម!', 'success');
     if (this.currentPage === 'pos')   this.renderProducts();
     if (this.currentPage === 'items') this.renderItems();
 };
 
 CoffeePOS.prototype.handleProductUpdated = function (data) {
-    console.log('📦 Product updated:', data);
     this.showToast('មុខម្ហូបត្រូវបានកែសម្រួល!', 'success');
     if (this.currentPage === 'pos')   this.renderProducts();
     if (this.currentPage === 'items') this.renderItems();
 };
 
 CoffeePOS.prototype.handleProductDeleted = function (data) {
-    console.log('🗑️ Product deleted:', data);
     this.showToast('មុខម្ហូបត្រូវបានលុប!', 'warning');
     if (this.currentPage === 'pos')   this.renderProducts();
     if (this.currentPage === 'items') this.renderItems();

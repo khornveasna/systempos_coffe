@@ -1,5 +1,32 @@
 // Users: list, open modal, save, delete
 
+// ── Helper: Populate role dropdown from database ──────────────────────────
+CoffeePOS.prototype.populateRoleDropdown = function () {
+    const select = document.getElementById('userRole');
+    if (!select) return;
+
+    const roles = this.data.roles || [];
+    
+    // Clear existing options
+    select.innerHTML = '';
+    
+    // Add default option
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = '-- ជ្រើសរើសតួនាទី --';
+    select.appendChild(defaultOpt);
+    
+    // Add role options from database
+    roles.forEach(role => {
+        const opt = document.createElement('option');
+        opt.value = role.name;
+        opt.textContent = role.label;
+        opt.dataset.roleId = role.id;
+        opt.dataset.roleColor = role.color || '#6f4e37';
+        select.appendChild(opt);
+    });
+};
+
 CoffeePOS.prototype.renderUsers = async function () {
     if (this.currentUser.role !== 'admin') {
         document.getElementById('usersPage').classList.add('hidden');
@@ -78,6 +105,12 @@ CoffeePOS.prototype.renderUsers = async function () {
 };
 
 CoffeePOS.prototype.onRoleChange = function (roleName, customPerms) {
+    // Handle empty role selection
+    if (!roleName) {
+        this._renderPermissionCheckboxes([], false, null);
+        return;
+    }
+
     // Find role from loaded data
     const roleObj = (this.data.roles || []).find(r => r.name === roleName);
     const isAdmin = roleName === 'admin';
@@ -90,24 +123,42 @@ CoffeePOS.prototype.onRoleChange = function (roleName, customPerms) {
 };
 
 CoffeePOS.prototype._renderPermissionCheckboxes = function (checkedPerms, locked, roleObj) {
-    const permissions = this.data.permissions || [];
-    const checkedSet  = new Set(checkedPerms);
     const grid = document.getElementById('permissionsGrid');
     if (!grid) return;
 
+    const checkedSet = new Set(checkedPerms);
+
+    // Use permissions from database (5 permissions: pos, items, orders, reports, users)
+    const permissions = this.data.permissions || [];
+
+    if (permissions.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:20px;">គ្មានសិទ្ធិ</p>';
+        return;
+    }
+
     grid.innerHTML = permissions.map(p => {
-        const isChecked  = checkedSet.has(p.key) ? 'checked' : '';
+        const isChecked  = checkedSet.has(p.key) ? 'active' : '';
         const isDisabled = locked ? 'disabled' : '';
         return `
-        <label class="permission-item ${locked ? 'locked' : ''}" data-perm="${p.key}">
-            <input type="checkbox" id="perm_${p.key}" data-perm-key="${p.key}" ${isChecked} ${isDisabled}>
-            <i class="fas ${p.icon || 'fa-key'} perm-icon"></i>
-            <span class="perm-label">
-                <span>${p.label}</span>
-                <small>${p.label_km || ''}</small>
-            </span>
+        <label class="permission-menu-item ${isChecked} ${locked ? 'locked' : ''}" data-perm="${p.key}">
+            <input type="checkbox" id="perm_${p.key}" data-perm-key="${p.key}" ${checkedSet.has(p.key) ? 'checked' : ''} ${isDisabled}>
+            <i class="fas ${p.icon || 'fa-key'}"></i>
+            <span>${p.label_km || p.label}</span>
         </label>`;
     }).join('');
+
+    // Add click handlers to toggle active class
+    const checkboxes = grid.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const parentLabel = this.closest('.permission-menu-item');
+            if (this.checked) {
+                parentLabel.classList.add('active');
+            } else {
+                parentLabel.classList.remove('active');
+            }
+        });
+    });
 
     // Lock badge
     const badge = document.getElementById('permLockBadge');
@@ -141,6 +192,9 @@ CoffeePOS.prototype.openUserModal = async function (userId = null) {
     document.getElementById('userPassword').required   = !userId;
     document.getElementById('passwordNote').style.display = userId ? 'block' : 'none';
 
+    // Populate role dropdown with roles from database
+    this.populateRoleDropdown();
+
     if (userId) {
         const user = this.data.users.find(u => u.id === userId);
         if (user) {
@@ -150,28 +204,27 @@ CoffeePOS.prototype.openUserModal = async function (userId = null) {
             document.getElementById('userUsername').value = user.username;
             document.getElementById('userFullname').value = user.fullname;
             document.getElementById('userPassword').value = '';
+            
+            // Set role value after dropdown is populated
             document.getElementById('userRole').value     = user.role;
 
             // Apply role UI with user's actual saved permissions
             this.onRoleChange(user.role, user.permissions || []);
-
-            if (user.startDate) {
-                document.getElementById('userStartDate').value = new Date(user.startDate).toISOString().slice(0, 16);
-            } else {
-                document.getElementById('userStartDate').value = '';
-            }
-            if (user.endDate) {
-                document.getElementById('userEndDate').value = new Date(user.endDate).toISOString().slice(0, 16);
-            } else {
-                document.getElementById('userEndDate').value = '';
-            }
         }
     } else {
         this.editingUser = null;
         document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus"></i> បន្ថែមអ្នកប្រើប្រាស់';
         document.getElementById('userId').value = '';
-        // Default to staff
-        this.onRoleChange('staff');
+        
+        // Default to staff role after dropdown is populated
+        const staffOption = Array.from(document.getElementById('userRole').options).find(opt => opt.value === 'staff');
+        if (staffOption) {
+            document.getElementById('userRole').value = 'staff';
+            this.onRoleChange('staff');
+        } else {
+            // Fallback if staff role doesn't exist
+            this.onRoleChange('', []);
+        }
     }
 
     modal.classList.add('active');
@@ -188,16 +241,6 @@ CoffeePOS.prototype.saveUser = async function () {
     const fullname = document.getElementById('userFullname').value;
     const password = document.getElementById('userPassword').value;
     const role     = document.getElementById('userRole').value;
-    const startDate = document.getElementById('userStartDate').value || null;
-    const endDate   = document.getElementById('userEndDate').value || null;
-
-    // Validate dates
-    if (startDate && endDate) {
-        if (new Date(endDate) < new Date(startDate)) {
-            this.showToast('កាលបរិច្ឆេទបញ្ចប់មិនអាចមុនកាលបរិច្ឆេទចាប់ផ្តើមទេ!', 'error');
-            return;
-        }
-    }
 
     if (!id && !password) {
         this.showToast('សូមបញ្ចូលពាក្យសម្ងាត់!', 'error');
@@ -226,6 +269,7 @@ CoffeePOS.prototype.saveUser = async function () {
     const permissions = Array.from(
         document.querySelectorAll('#permissionsGrid input[data-perm-key]:checked')
     ).map(cb => cb.getAttribute('data-perm-key'));
+
     if (role === 'admin') {
         permissions.length = 0;
         permissions.push(...(this.data.permissions || []).map(p => p.key));
@@ -243,7 +287,6 @@ CoffeePOS.prototype.saveUser = async function () {
                     username, fullname,
                     password: password || undefined,
                     role, permissions, active: true,
-                    startDate, endDate,
                     userId: this.currentUser.id,
                     userRole: this.currentUser.role
                 })
@@ -273,7 +316,6 @@ CoffeePOS.prototype.saveUser = async function () {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username, password, fullname, role, permissions,
-                    startDate, endDate,
                     userId: this.currentUser.id,
                     userRole: this.currentUser.role
                 })
@@ -293,9 +335,20 @@ CoffeePOS.prototype.saveUser = async function () {
         await this.renderUsers();
 
         if (isUpdatingCurrentUser) {
+            
+            // Update current user's permissions in memory
+            this.currentUser.permissions = permissions;
+            this.currentUser.role = role;
+
+            // Apply permissions immediately
             this.applyUserPermissions();
-            this.showToast('សិទ្ធិប្រើប្រាស់ត្រូវបានធ្វើបច្ចុប្បន្នភាព! ប្រព័ន្ធនឹងផ្ទុកឡើងវិញ...', 'success');
-            setTimeout(() => location.reload(), 1500);
+
+            this.showToast('សិទ្ធិប្ើប្ាស់ត្រូវបានធ្វើបច្ចុប្បន្នភាព! កំពុងផ្ទុកើងវិញ...', 'success');
+
+            // Reload page after a short delay to apply all changes
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         }
     } catch (error) {
         console.error('User save error:', error);

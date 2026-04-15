@@ -1,5 +1,6 @@
 // User Controller
 const userModel = require('../models/User');
+const roleModel = require('../models/Role');
 
 class UserController {
     async getAllUsers(req, res) {
@@ -71,26 +72,26 @@ class UserController {
 
             // Only admin can create users
             if (userRole !== 'admin') {
-                return res.status(403).json({ 
-                    success: false, 
-                    message: 'មានតែ Admin ទេដែលអាចបង្កើតអ្នកប្រើប្រាស់!' 
+                return res.status(403).json({
+                    success: false,
+                    message: 'មានតែ Admin ទេដែលអាចបង្កើតអ្នកប្រើប្រាស់!'
                 });
             }
 
             // Validate input
             if (!username || !password || !fullname || !role) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Missing required fields' 
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing required fields'
                 });
             }
 
             // Check if username exists
             const existing = userModel.findByUsername(username);
             if (existing) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'ឈ្មោះអ្នកប្រើប្រាស់មានរួចហើយ!' 
+                return res.status(400).json({
+                    success: false,
+                    message: 'ឈ្មោះអ្នកប្រើប្រាស់មានរួចហើយ!'
                 });
             }
 
@@ -99,10 +100,28 @@ class UserController {
                 const allUsers = userModel.findAll();
                 const adminCount = allUsers.filter(u => u.role === 'admin').length;
                 if (adminCount > 0) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        message: 'មានតែ Admin មួយគត់ដែលអាចមានក្នុងប្រព័ន្ធ!' 
+                    return res.status(400).json({
+                        success: false,
+                        message: 'មានតែ Admin មួយគត់ដែលអាចមានក្នុងប្រព័ន្ធ!'
                     });
+                }
+            }
+
+            // Determine permissions to use
+            let finalPermissions = [];
+
+            // If permissions are explicitly provided and it's not an admin role, use them
+            if (permissions && Array.isArray(permissions) && permissions.length > 0 && role !== 'admin') {
+                finalPermissions = permissions;
+            } else if (role === 'admin') {
+                // Admin always gets all permissions
+                const allPerms = roleModel.findAllPermissions();
+                finalPermissions = allPerms.map(p => p.key);
+            } else {
+                // Use permissions from role_permissions table
+                const roleData = roleModel.findByName(role);
+                if (roleData && roleData.permissions) {
+                    finalPermissions = roleData.permissions.map(p => p.key);
                 }
             }
 
@@ -111,7 +130,7 @@ class UserController {
                 password,
                 fullname,
                 role,
-                permissions,
+                permissions: finalPermissions,
                 startDate,
                 endDate
             });
@@ -130,9 +149,9 @@ class UserController {
             });
         } catch (error) {
             console.error('Create user error:', error);
-            res.status(500).json({ 
-                success: false, 
-                message: 'Internal server error' 
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error'
             });
         }
     }
@@ -144,18 +163,18 @@ class UserController {
 
             // Only admin can update users
             if (userRole !== 'admin') {
-                return res.status(403).json({ 
-                    success: false, 
-                    message: 'មានតែ Admin ទេដែលអាចកែសម្រួលអ្នកប្រើប្រាស់!' 
+                return res.status(403).json({
+                    success: false,
+                    message: 'មានតែ Admin ទេដែលអាចកែសម្រួលអ្នកប្រើប្រាស់!'
                 });
             }
 
             // Check if username exists (excluding current user)
             const existing = userModel.findByUsername(username);
             if (existing && existing.id !== id) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'ឈ្មោះអ្នកប្រើប្រាស់មានរួចហើយ!' 
+                return res.status(400).json({
+                    success: false,
+                    message: 'ឈ្មោះអ្នកប្រើប្រាស់មានរួចហើយ!'
                 });
             }
 
@@ -164,10 +183,28 @@ class UserController {
                 const allUsers = userModel.findAll();
                 const otherAdmins = allUsers.filter(u => u.role === 'admin' && u.id !== id);
                 if (otherAdmins.length > 0) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        message: 'មិនអាចផ្លាស់ប្តូរជា Admin ទេ ព្រោះមាន Admin រួចហើយ!' 
+                    return res.status(400).json({
+                        success: false,
+                        message: 'មិនអាចផ្លាស់ប្តូរជា Admin ទេ ព្រោះមាន Admin រួចហើយ!'
                     });
+                }
+            }
+
+            // Determine permissions to use
+            let finalPermissions = [];
+
+            // If permissions are explicitly provided and it's not an admin role, use them
+            if (permissions && Array.isArray(permissions) && permissions.length > 0 && role !== 'admin') {
+                finalPermissions = permissions;
+            } else if (role === 'admin') {
+                // Admin always gets all permissions
+                const allPerms = roleModel.findAllPermissions();
+                finalPermissions = allPerms.map(p => p.key);
+            } else {
+                // Use permissions from role_permissions table
+                const roleData = roleModel.findByName(role);
+                if (roleData && roleData.permissions) {
+                    finalPermissions = roleData.permissions.map(p => p.key);
                 }
             }
 
@@ -176,7 +213,7 @@ class UserController {
                 password,
                 fullname,
                 role,
-                permissions,
+                permissions: finalPermissions,
                 startDate,
                 endDate,
                 active
@@ -189,16 +226,16 @@ class UserController {
                 req.broadcast('user-updated', sanitizedUser);
             }
 
-            res.json({ 
-                success: true, 
+            res.json({
+                success: true,
                 message: 'បានកែសម្រួលអ្នកប្រើប្រាស់!',
                 user: sanitizedUser
             });
         } catch (error) {
             console.error('Update user error:', error);
-            res.status(500).json({ 
-                success: false, 
-                message: 'Internal server error' 
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error'
             });
         }
     }

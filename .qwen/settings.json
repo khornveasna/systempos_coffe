@@ -24,7 +24,9 @@
       "Bash(type *)",
       "Bash(dir *)",
       "Bash(cmd *)",
-      "Bash(xcopy *)"
+      "Bash(xcopy *)",
+      "Bash(powershell *)",
+      "Bash(do *)"
     ]
   },
   "$version": 3
