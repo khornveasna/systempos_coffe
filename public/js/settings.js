@@ -21,29 +21,48 @@ class SettingsModule {
     async loadSettings() {
         try {
             const response = await fetch('/api/settings');
-            
+
             if (!response.ok) {
                 if (response.status === 429) {
                     this.pos.showToast('សូមរង់ចាំបន្តិច រួចសាកម្តងទត', 'warning');
                 }
                 return;
             }
-            
-            const data = await response.json();
 
-            if (data.success && data.settings) {
-                if (data.settings.systemLogo) {
-                    this.currentLogo = data.settings.systemLogo;
-                    this.updateAllLogos(this.currentLogo);
-                    const logoName = data.settings.systemLogoName || 'custom-logo.png';
-                    const logoNameEl = document.getElementById('currentLogoName');
-                    if (logoNameEl) {
-                        logoNameEl.textContent = logoName;
-                    }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                return;
+            }
+
+            const result = await response.json();
+            const data = result.settings || {};
+
+            if (data.systemLogo) {
+                this.currentLogo = data.systemLogo;
+                this.updateAllLogos(this.currentLogo);
+                const logoName = data.systemLogoName || 'custom-logo.png';
+                const logoNameEl = document.getElementById('currentLogoName');
+                if (logoNameEl) {
+                    logoNameEl.textContent = logoName;
+                }
+            }
+            
+            if (data.exchangeRate) {
+                const exchangeRateInput = document.getElementById('exchangeRateInput');
+                const currentExchangeRate = document.getElementById('currentExchangeRate');
+                if (exchangeRateInput) {
+                    exchangeRateInput.value = data.exchangeRate;
+                }
+                if (currentExchangeRate) {
+                    currentExchangeRate.textContent = data.exchangeRate;
+                }
+                if (typeof setExchangeRate === 'function') {
+                    setExchangeRate(data.exchangeRate);
+                    enableDualCurrency();
                 }
             }
         } catch (error) {
-            this.pos.showToast('កំហុសក្នុងការទាញយកទិន្ននយ', 'error');
+            // Silent fail for settings load
         }
     }
 

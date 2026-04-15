@@ -78,7 +78,13 @@ class DatabaseService {
                 discountPercent REAL DEFAULT 0,
                 discountAmount REAL DEFAULT 0,
                 total REAL NOT NULL DEFAULT 0,
+                totalUSD REAL DEFAULT 0,
                 paymentMethod TEXT NOT NULL DEFAULT 'cash',
+                amountReceived REAL DEFAULT 0,
+                amountReceivedUSD REAL DEFAULT 0,
+                changeAmount REAL DEFAULT 0,
+                changeAmountUSD REAL DEFAULT 0,
+                exchangeRate REAL DEFAULT 4000,
                 userId TEXT NOT NULL,
                 userName TEXT NOT NULL,
                 FOREIGN KEY (userId) REFERENCES users(id)
@@ -181,7 +187,8 @@ class DatabaseService {
                 INSERT INTO settings (key, value) VALUES
                 ('shopName', 'Coffee POS'),
                 ('currency', '៛'),
-                ('taxRate', '0')
+                ('taxRate', '0'),
+                ('exchangeRate', '4000')
             `);
         }
 

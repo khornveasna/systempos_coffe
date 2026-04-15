@@ -156,6 +156,12 @@
                         </div>
 
                         <div class="cart-summary">
+                            <!-- Exchange Rate Display -->
+                            <div class="exchange-rate-display" id="exchangeRateDisplay">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>អត្រា: 1 USD = <strong id="cartExchangeRate">4000</strong> KHR</span>
+                            </div>
+
                             <div class="summary-row">
                                 <span>ចំនួនទឹកប្រាក់:</span>
                                 <span id="subtotal">0៛</span>
@@ -469,12 +475,106 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Exchange Rate Section -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-exchange-alt"></i> អត្រាប្តូរប្រាក់ (KHR/USD)</h3>
+                        <p class="settings-description">កំណត់អត្រាប្តូរប្រាក់រវាងរៀល និងដុល្លារអាមេរិក</p>
+
+                        <div class="exchange-rate-settings">
+                            <div class="form-group">
+                                <label for="exchangeRateInput">
+                                    <i class="fas fa-dollar-sign"></i> 1 USD = ? KHR
+                                </label>
+                                <div class="exchange-rate-input-group">
+                                    <input 
+                                        type="number" 
+                                        id="exchangeRateInput" 
+                                        class="form-control" 
+                                        placeholder="4000" 
+                                        min="1000" 
+                                        max="10000" 
+                                        step="100"
+                                        value="4000">
+                                    <span class="exchange-rate-unit">KHR</span>
+                                </div>
+                                <p class="exchange-rate-hint">
+                                    <i class="fas fa-info-circle"></i> អត្រាបច្ចុប្បន្: 1 USD = <span id="currentExchangeRate">4000</span> KHR
+                                </p>
+                            </div>
+                            <button class="btn-action" id="saveExchangeRateBtn" onclick="pos.saveExchangeRate()">
+                                <i class="fas fa-save"></i> រក្សាទុកអត្រាប្តូរប្រាក់
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Checkout Modal -->
+    <!-- Customization Modal -->
+    <div id="customizationModal" class="modal">
+        <div class="modal-content customization-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-sliders-h"></i> កំណត់ជម្រើស</h2>
+                <button type="button" class="modal-close" aria-label="Close customization modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="customization-content">
+                    <!-- Product Info -->
+                    <div class="custom-product-info">
+                        <h3 id="customProductName">-</h3>
+                        <p id="customProductPrice" class="custom-product-price">0៛</p>
+                    </div>
+
+                    <!-- Sugar Level -->
+                    <div class="customization-section">
+                        <h4><i class="fas fa-candy-cane"></i> កម្រិតផ្អែម</h4>
+                        <div class="option-group sugar-options">
+                            <button type="button" class="option-btn selected" data-sugar="normal" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ផ្អែមធម្មតា</span>
+                            </button>
+                            <button type="button" class="option-btn" data-sugar="less" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ផ្អែមតិច</span>
+                            </button>
+                            <button type="button" class="option-btn" data-sugar="none" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>មិនផ្អែម</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ice Level -->
+                    <div class="customization-section">
+                        <h4><i class="fas fa-snowflake"></i> កម្រិតទឹកកក</h4>
+                        <div class="option-group ice-options">
+                            <button type="button" class="option-btn selected" data-ice="normal" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ទឹកកកធម្មតា</span>
+                            </button>
+                            <button type="button" class="option-btn" data-ice="less" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>ទឹកកកតិច</span>
+                            </button>
+                            <button type="button" class="option-btn" data-ice="none" onclick="pos.selectOption(this)">
+                                <i class="fas fa-check-circle"></i>
+                                <span>មិនដាក់ទឹកកក</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel modal-close">បោះបង់</button>
+                <button type="button" class="btn-confirm" onclick="pos.confirmCustomization()">
+                    <i class="fas fa-cart-plus"></i> បន្ថែមចូលរទេះ
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="checkoutModal" class="modal">
         <div class="modal-content checkout-modal">
             <div class="modal-header">
@@ -498,7 +598,10 @@
                             <div class="receipt-totals">
                                 <div class="receipt-row">
                                     <span>ចំនួនទឹកប្រាក់:</span>
-                                    <span id="receiptSubtotal">0៛</span>
+                                    <div class="receipt-amounts">
+                                        <span id="receiptSubtotal">0៛</span>
+                                        <span id="receiptSubtotalUSD" class="usd-amount" style="display: none;">($0.00)</span>
+                                    </div>
                                 </div>
                                 <div class="receipt-row discount">
                                     <span>បញ្ចុះ (%):</span>
@@ -506,11 +609,17 @@
                                 </div>
                                 <div class="receipt-row discount">
                                     <span>បញ្ចុះ (៛):</span>
-                                    <span id="receiptDiscountAmount">0៛</span>
+                                    <div class="receipt-amounts">
+                                        <span id="receiptDiscountAmount">0៛</span>
+                                        <span id="receiptDiscountAmountUSD" class="usd-amount" style="display: none;">($0.00)</span>
+                                    </div>
                                 </div>
                                 <div class="receipt-row total">
                                     <span>សរុប:</span>
-                                    <span id="receiptTotal">0៛</span>
+                                    <div class="receipt-amounts">
+                                        <span id="receiptTotal">0៛</span>
+                                        <span id="receiptTotalUSD" class="usd-amount" style="display: none;">($0.00)</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -536,16 +645,33 @@
                             </button>
                         </div>
                         <div class="payment-form">
+                            <!-- Exchange Rate Info -->
+                            <div class="exchange-rate-info" id="checkoutExchangeRateInfo" style="display: none;">
+                                <i class="fas fa-info-circle"></i>
+                                <span>អត្រាប្តូរប្រាក់: 1 USD = <strong id="checkoutExchangeRate">4000</strong> KHR</span>
+                            </div>
+                            
+                            <!-- KHR Input -->
                             <div class="form-group">
                                 <label>ចំនួនទទួល (៛):</label>
                                 <input type="number" id="amountReceived" placeholder="0" min="0">
                             </div>
+                            
+                            <!-- USD Input -->
+                            <div class="form-group" id="usdPaymentGroup" style="display: none;">
+                                <label>ឬ ចំនួនទទួល ($):</label>
+                                <input type="number" id="amountReceivedUSD" placeholder="0.00" min="0" step="0.01">
+                            </div>
+                            
                             <div class="change-display">
                                 <div class="change-label">
                                     <i class="fas fa-coins"></i>
                                     <span>ប្រាក់អាប់:</span>
                                 </div>
-                                <span id="changeAmount">0៛</span>
+                                <div class="change-amounts">
+                                    <span id="changeAmount" class="change-khr">0៛</span>
+                                    <span id="changeAmountUSD" class="change-usd" style="display: none;">($0.00)</span>
+                                </div>
                             </div>
                         </div>
                     </div>

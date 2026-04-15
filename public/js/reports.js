@@ -212,11 +212,11 @@ CoffeePOS.prototype.renderTopProductsPieChart = function (topProducts) {
             datasets: [{
                 data: topProducts.map(([, qty]) => qty),
                 backgroundColor: colors.slice(0, topProducts.length),
-                borderWidth: 3,
+                borderWidth: 4,
                 borderColor: '#fff',
-                hoverBorderWidth: 4,
+                hoverBorderWidth: 5,
                 hoverBorderColor: '#fff',
-                hoverOffset: 15
+                hoverOffset: 20
             }]
         },
         options: {
@@ -232,13 +232,13 @@ CoffeePOS.prototype.renderTopProductsPieChart = function (topProducts) {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 15,
+                        padding: 20,
                         usePointStyle: true,
                         pointStyle: 'circle',
                         font: {
                             family: "'Kantumruy Pro', sans-serif",
-                            size: 12,
-                            weight: '500'
+                            size: 15,
+                            weight: '600'
                         },
                         generateLabels: function(chart) {
                             const data = chart.data;
@@ -261,15 +261,15 @@ CoffeePOS.prototype.renderTopProductsPieChart = function (topProducts) {
                     backgroundColor: 'rgba(111, 78, 55, 0.95)',
                     titleFont: {
                         family: "'Kantumruy Pro', sans-serif",
-                        size: 14,
+                        size: 16,
                         weight: '600'
                     },
                     bodyFont: {
                         family: "'Kantumruy Pro', sans-serif",
-                        size: 13
+                        size: 15
                     },
-                    padding: 12,
-                    cornerRadius: 8,
+                    padding: 15,
+                    cornerRadius: 10,
                     displayColors: true,
                     callbacks: {
                         label: function(context) {
@@ -285,16 +285,16 @@ CoffeePOS.prototype.renderTopProductsPieChart = function (topProducts) {
                     color: '#fff',
                     font: {
                         family: "'Kantumruy Pro', sans-serif",
-                        size: 13,
-                        weight: '600'
+                        size: 16,
+                        weight: '700'
                     },
                     formatter: function(value, context) {
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
                         const percentage = ((value / total) * 100).toFixed(1);
                         return `${value}\n(${percentage}%)`;
                     },
-                    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-                    textShadowBlur: 4,
+                    textShadowColor: 'rgba(0, 0, 0, 0.6)',
+                    textShadowBlur: 5,
                     textAlign: 'center',
                     anchor: 'center',
                     align: 'center',
@@ -302,7 +302,7 @@ CoffeePOS.prototype.renderTopProductsPieChart = function (topProducts) {
                 }
             },
             layout: {
-                padding: 10
+                padding: 20
             }
         },
         plugins: [ChartDataLabels]

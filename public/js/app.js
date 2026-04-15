@@ -119,6 +119,11 @@ class CoffeePOS {
         document.getElementById('checkoutBtn').addEventListener('click', () => this.openCheckout());
         document.getElementById('confirmPaymentBtn').addEventListener('click', () => this.confirmPayment());
         document.getElementById('amountReceived').addEventListener('input', () => this.calculateChange());
+        // Add event listener for USD payment input
+        const amountReceivedUSD = document.getElementById('amountReceivedUSD');
+        if (amountReceivedUSD) {
+            amountReceivedUSD.addEventListener('input', () => this.calculateChange());
+        }
         document.querySelectorAll('.payment-method').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.payment-method').forEach(b => b.classList.remove('active'));

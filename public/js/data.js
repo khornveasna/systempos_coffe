@@ -99,8 +99,46 @@ function generateReceiptNumber() {
     return `${year}${month}${day}${rand}`;
 }
 
-function formatCurrency(amount) {
+// Exchange rate state (loaded from API)
+let exchangeRate = 4000; // Default: 4000 KHR = 1 USD
+let showDualCurrency = false;
+
+function setExchangeRate(rate) {
+    exchangeRate = parseFloat(rate) || 4000;
+}
+
+function getExchangeRate() {
+    return exchangeRate;
+}
+
+function enableDualCurrency() {
+    showDualCurrency = true;
+}
+
+function disableDualCurrency() {
+    showDualCurrency = false;
+}
+
+function formatCurrency(amount, currency = 'KHR') {
+    if (currency === 'USD') {
+        return '$' + (amount / exchangeRate).toFixed(2);
+    }
+    
+    if (showDualCurrency) {
+        const khrFormatted = amount.toLocaleString('km-KH') + '៛';
+        const usdFormatted = '$' + (amount / exchangeRate).toFixed(2);
+        return `${khrFormatted} (${usdFormatted})`;
+    }
+    
     return amount.toLocaleString('km-KH') + '៛';
+}
+
+function formatKHROnly(amount) {
+    return amount.toLocaleString('km-KH') + '៛';
+}
+
+function formatUSD(amount) {
+    return '$' + (amount / exchangeRate).toFixed(2);
 }
 
 function formatDate(dateString) {

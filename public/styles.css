@@ -1091,6 +1091,39 @@ body {
     font-size: 13px;
 }
 
+/* Cart Item Customization Tags */
+.cart-item-customization {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.customization-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sugar-tag {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    color: #d63031;
+}
+
+.ice-tag {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    color: white;
+}
+
+.customization-tag i {
+    font-size: 10px;
+}
+
 .cart-item-controls {
     display: flex;
     align-items: center;
@@ -1143,6 +1176,34 @@ body {
     border-top: 2px solid var(--border);
     padding-top: 15px;
     margin-bottom: 15px;
+}
+
+/* Exchange Rate Display in Cart */
+.exchange-rate-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.exchange-rate-display.show {
+    display: flex !important;
+}
+
+.exchange-rate-display i {
+    font-size: 16px;
+}
+
+.exchange-rate-display strong {
+    font-size: 15px;
+    font-weight: 700;
 }
 
 .summary-row {
@@ -1664,8 +1725,11 @@ body {
 
 .top-products-container {
     display: flex;
-    gap: 30px;
+    gap: 40px;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 20px 0;
 }
 
 .top-products {
@@ -1676,18 +1740,23 @@ body {
 }
 
 .top-products-chart-container {
-    width: 350px;
-    height: 350px;
+    width: 600px;
+    height: 600px;
     flex-shrink: 0;
     background: white;
-    border-radius: 15px;
-    padding: 20px;
+    border-radius: 20px;
+    padding: 30px;
     box-shadow: var(--shadow);
+    margin: 20px auto;
 }
 
 .top-products-chart-container canvas {
     width: 100% !important;
     height: 100% !important;
+    max-width: 540px !important;
+    max-height: 540px !important;
+    display: block;
+    margin: 0 auto;
 }
 
 .top-product-item {
@@ -2349,6 +2418,107 @@ body {
     font-family: 'Kantumruy Pro', sans-serif;
 }
 
+/* Exchange Rate Info in Checkout */
+.exchange-rate-info {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border-left: 4px solid #1976d2;
+}
+
+.exchange-rate-info.show {
+    display: flex !important;
+}
+
+.exchange-rate-info i {
+    font-size: 16px;
+}
+
+/* USD Payment Input */
+#usdPaymentGroup {
+    margin-top: 10px;
+    display: none;
+}
+
+#usdPaymentGroup.show {
+    display: block !important;
+}
+
+#usdPaymentGroup label {
+    color: #4caf50;
+    font-weight: 600;
+}
+
+#usdPaymentGroup input {
+    border-color: #4caf50;
+    background: #f1f8e9;
+}
+
+#usdPaymentGroup input:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* Change Display with Dual Currency */
+.change-amounts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.change-khr {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--success);
+}
+
+.change-usd {
+    font-weight: 600;
+    font-size: 14px;
+    color: #4caf50;
+    display: none;
+}
+
+.change-usd.show {
+    display: inline !important;
+}
+
+/* Checkout Modal Exchange Rate */
+#checkoutExchangeRateInfo {
+    display: none;
+}
+
+#checkoutExchangeRateInfo.show {
+    display: flex !important;
+}
+
+/* Receipt Amounts with Dual Currency */
+.receipt-amounts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.usd-amount {
+    font-size: 12px;
+    color: #4caf50;
+    font-weight: 600;
+    display: none;
+}
+
+.usd-amount.show {
+    display: inline !important;
+}
+
 .change-display {
     display: flex;
     justify-content: space-between;
@@ -2552,6 +2722,110 @@ body {
 
 .toast.warning::after {
     background: linear-gradient(90deg, rgba(243, 156, 18, 0.95), rgba(243, 156, 18, 0.35));
+}
+
+/* ========================================
+   CUSTOMIZATION MODAL STYLES
+   ======================================== */
+.modal-content.customization-modal {
+    max-width: 500px;
+    padding: 0;
+}
+
+.customization-content {
+    padding: 20px;
+}
+
+.custom-product-info {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 25px;
+}
+
+.custom-product-info h3 {
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.custom-product-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.customization-section {
+    margin-bottom: 30px;
+}
+
+.customization-section h4 {
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.customization-section h4 i {
+    color: var(--primary);
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 15px;
+    text-align: left;
+    width: 100%;
+}
+
+.option-btn:hover {
+    border-color: var(--primary);
+    background: rgba(111, 78, 55, 0.05);
+}
+
+.option-btn.selected {
+    border-color: var(--primary);
+    background: rgba(111, 78, 55, 0.1);
+    box-shadow: 0 2px 8px rgba(111, 78, 55, 0.2);
+}
+
+.option-btn i {
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.option-btn .fa-check-circle {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.option-btn.selected .fa-check-circle {
+    opacity: 1;
+}
+
+/* Receipt Item Customization */
+.receipt-item-custom {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    font-weight: 600;
+    font-style: italic;
 }
 
 /* ========================================
@@ -3480,9 +3754,11 @@ body {
     }
 
     .top-products-chart-container {
-        width: 280px;
-        height: 280px;
-        padding: 15px;
+        width: 100%;
+        max-width: 450px;
+        height: 450px;
+        padding: 20px;
+        margin: 20px auto;
     }
 
     .top-product-item {
@@ -3565,7 +3841,6 @@ body {
         padding: 12px;
     }
 
-    /* Checkout Modal */
     .checkout-content {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -4450,6 +4725,62 @@ body {
     color: var(--text-light);
     font-size: 0.9rem;
     margin-bottom: 20px;
+}
+
+/* Exchange Rate Settings */
+.exchange-rate-settings {
+    max-width: 500px;
+}
+
+.exchange-rate-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.exchange-rate-input-group input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: 'Kantumruy Pro', sans-serif;
+}
+
+.exchange-rate-input-group input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.1);
+}
+
+.exchange-rate-unit {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    min-width: 40px;
+}
+
+.exchange-rate-hint {
+    margin-top: 10px;
+    color: var(--text-light);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.exchange-rate-hint i {
+    color: var(--warning);
+}
+
+.exchange-rate-hint strong {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+#saveExchangeRateBtn {
+    margin-top: 20px;
 }
 
 /* Settings Actions */

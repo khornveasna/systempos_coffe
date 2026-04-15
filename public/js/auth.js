@@ -109,10 +109,41 @@ CoffeePOS.prototype.applyUserPermissions = function () {
     }
 };
 
-CoffeePOS.prototype.showApp = function () {
+CoffeePOS.prototype.showApp = async function () {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('appScreen').classList.remove('hidden');
-    
+
+    // Load exchange rate from settings
+    try {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const settingsRes = await fetch('/api/settings');
+        
+        if (settingsRes.ok) {
+            const contentType = settingsRes.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const result = await settingsRes.json();
+                const settingsData = result.settings || {};
+                
+                if (settingsData.exchangeRate) {
+                    setExchangeRate(settingsData.exchangeRate);
+                    enableDualCurrency();
+                } else {
+                    setExchangeRate(4000);
+                    enableDualCurrency();
+                }
+            } else {
+                setExchangeRate(4000);
+                enableDualCurrency();
+            }
+        } else {
+            setExchangeRate(4000);
+            enableDualCurrency();
+        }
+    } catch (error) {
+        setExchangeRate(4000);
+        enableDualCurrency();
+    }
+
     const savedItemsView = typeof this.getSavedItemsViewState === 'function'
         ? this.getSavedItemsViewState()
         : { view: 'categories', categoryId: 'all' };
@@ -125,6 +156,10 @@ CoffeePOS.prototype.showApp = function () {
     this.applyUserPermissions();
     if (this.socket && this.currentUser) {
         this.socket.emit('user-login', this.currentUser);
+    }
+    
+    if (this.currentPage === 'pos') {
+        this.renderCart();
     }
 };
 
