@@ -1,4 +1,4 @@
-﻿// POS: products grid, cart, checkout, print receipt
+// POS: products grid, cart, checkout, print receipt
 
 CoffeePOS.prototype.renderProducts = function () {
     const grid       = document.getElementById('productsGrid');
@@ -16,7 +16,7 @@ CoffeePOS.prototype.renderProducts = function () {
         grid.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-light);">
                 <i class="fas fa-search" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
-                <p>គ្មានមុខម្ហូបត្រូវនឹងការស្វែងរក</p>
+                <p>គ្មានមុខទំនិញត្រូវនឹងការស្វែងរក</p>
             </div>`;
         return;
     }
@@ -124,7 +124,7 @@ CoffeePOS.prototype.renderCart = function () {
     const cartItems = document.getElementById('cartItems');
 
     if (this.cart.length === 0) {
-        cartItems.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-cart"></i><p>គ្មានមុខម្ហូបក្នុងរទេះ</p></div>`;
+        cartItems.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-cart"></i><p>គ្មានមុខទំនិញក្នុងរទេះ</p></div>`;
         document.getElementById('checkoutBtn').disabled = true;
     } else {
         cartItems.innerHTML = this.cart.map((item, i) => {
@@ -412,7 +412,7 @@ CoffeePOS.prototype.saveExchangeRate = async function () {
                 currentExchangeRate.textContent = exchangeRate;
             }
             
-            this.showToast(`អត្រាបតូរបរាក់តរូវបានរក្ាទុក! 1 USD = ${exchangeRate} KHR`, 'success');
+            this.showToast(`អត្រាបតូរប្រាក់តរូវបានរក្គ្មទុក! 1 USD = ${exchangeRate} KHR`, 'success');
 
             this.renderProducts();
             this.renderCart();

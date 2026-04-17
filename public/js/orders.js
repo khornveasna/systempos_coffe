@@ -43,7 +43,7 @@ CoffeePOS.prototype.renderOrders = async function () {
                     <td data-label="ល.រ">${index + 1}</td>
                     <td data-label="លេខវិក័យបត្រ">${order.receiptNumber}</td>
                     <td data-label="កាលបរិច្ឆេទ">${formatDate(order.date)}</td>
-                    <td data-label="មុខម្ហូប" class="order-items-cell">${itemNames}</td>
+                    <td data-label="មុខទំនិញ" class="order-items-cell">${itemNames}</td>
                     <td data-label="ចំនួន">${itemCount}</td>
                     <td data-label="សរុប">${formatCurrency(order.total)}</td>
                     <td data-label="បញ្ចុះ">${order.discountAmount > 0 ? formatCurrency(order.discountAmount) : '-'}</td>
@@ -396,7 +396,7 @@ CoffeePOS.prototype.exportOrdersWord = async function () {
                 shading: { type: ShadingType.SOLID, color: '6F4E37' }
             }),
             new TableCell({
-                children: [new Paragraph({ children: [new TextRun({ text: 'មុខម្ហូប', bold: true, color: 'FFFFFF' })] })],
+                children: [new Paragraph({ children: [new TextRun({ text: 'មុខទំនិញ', bold: true, color: 'FFFFFF' })] })],
                 shading: { type: ShadingType.SOLID, color: '6F4E37' }
             }),
             new TableCell({
@@ -565,7 +565,7 @@ CoffeePOS.prototype.exportOrdersExcel = async function () {
         'ល.រ': `${logoName} - Order History Report`,
         'លេខវិក័យបត្រ': '',
         'កាលបរិច្ឆេទ': '',
-        'មុខម្ហូប': '',
+        'មុខទំនិញ': '',
         'ចំនួន': '',
         'សរុប': '',
         'បញ្ចុះ': '',
@@ -587,7 +587,7 @@ CoffeePOS.prototype.exportOrdersExcel = async function () {
         'ល.រ': filterText,
         'លេខវិក័យបត្រ': '',
         'កាលបរិច្ឆេទ': '',
-        'មុខម្ហូប': '',
+        'មុខទំនិញ': '',
         'ចំនួន': '',
         'សរុប': '',
         'បញ្ចុះ': '',
@@ -599,7 +599,7 @@ CoffeePOS.prototype.exportOrdersExcel = async function () {
         'ល.រ': '',
         'លេខវិក័យបត្រ': '',
         'កាលបរិច្ឆេទ': '',
-        'មុខម្ហូប': '',
+        'មុខទំនិញ': '',
         'ចំនួន': '',
         'សរុប': '',
         'បញ្ចុះ': '',
@@ -616,7 +616,7 @@ CoffeePOS.prototype.exportOrdersExcel = async function () {
             'ល.រ': index + 1,
             'លេខវិក័យបត្រ': order.receiptNumber,
             'កាលបរិច្ឆេទ': order.date,
-            'មុខម្ហូប': itemNames,
+            'មុខទំនិញ': itemNames,
             'ចំនួន': itemCount,
             'សរុប': order.total.toLocaleString('km-KH') + currency,
             'បញ្ចុះ': order.discountAmount > 0 ? order.discountAmount.toLocaleString('km-KH') + currency : '-',
@@ -633,7 +633,7 @@ CoffeePOS.prototype.exportOrdersExcel = async function () {
         { wch: 5 },  // ល.រ
         { wch: 20 }, // លេខវិក័យបត្រ
         { wch: 20 }, // កាលបរិច្ឆេទ
-        { wch: 40 }, // មុខម្ហូប
+        { wch: 40 }, // មុខទំនិញ
         { wch: 10 }, // ចំនួន
         { wch: 12 }, // សរុប
         { wch: 12 }, // បញ្ចុះ
@@ -726,7 +726,7 @@ CoffeePOS.prototype.exportOrdersPDF = async function () {
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 40px;">ល.រ</th>
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">លេខវិក័យបត្រ</th>
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">កាលបរិច្ឆេទ</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">មុខម្ហូប</th>
+                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">មុខទំនិញ</th>
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 60px;">ចំនួន</th>
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: right; width: 90px;">សរុប</th>
                         <th style="padding: 8px; border: 1px solid #ddd; text-align: right; width: 80px;">បញ្ចុះ</th>
