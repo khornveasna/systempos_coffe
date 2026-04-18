@@ -298,6 +298,8 @@ class CoffeePOS {
             case 'pos':
                 if (typeof this.renderCategoryControls === 'function') this.renderCategoryControls();
                 this.renderProducts();
+                // Ensure exchange rate display is updated when navigating to POS page
+                this.updateCartTotals();
                 break;
             case 'items':
                 if (typeof this.renderCategoryControls === 'function') this.renderCategoryControls();

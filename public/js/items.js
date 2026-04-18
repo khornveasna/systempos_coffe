@@ -52,7 +52,7 @@ CoffeePOS.prototype.renderCategoryOverview = function () {
         list.innerHTML = `
             <div class="empty-state empty-state-card">
                 <i class="fas fa-tags"></i>
-                <p>មិនទាន់មានប្រភេទ</p>
+                <p>គ្មានមុខទំនិញ</p>
             </div>`;
         return;
     }
@@ -65,14 +65,14 @@ CoffeePOS.prototype.renderCategoryOverview = function () {
     list.innerHTML = [
         `<div class="category-list-card ${this.currentItemsCategory === 'all' ? 'active' : ''}" data-category="all" role="button" tabindex="0">`
         + `<div class="category-list-icon"><i class="fas fa-th"></i></div>`
-        + `<div class="category-list-body"><strong>ទាំងអស់</strong><span>${totalCount} មុខម្ហូប</span></div>`
+        + `<div class="category-list-body"><strong>ទាំងអស់</strong><span>${totalCount} មុខទំនិញ</span></div>`
         + `<i class="fas fa-chevron-right category-list-chevron"></i></div>`
     ].concat(categories.map(category => `
         <div class="category-list-card ${this.currentItemsCategory === category.id ? 'active' : ''}" data-category="${category.id}" role="button" tabindex="0">
             <div class="category-list-icon"><i class="fas ${category.icon || 'fa-tag'}"></i></div>
             <div class="category-list-body">
                 <strong>${category.name}</strong>
-                <span>${countByCategory[category.id] || 0} មុខម្ហូប</span>
+                <span>${countByCategory[category.id] || 0} មុខទំនិញ</span>
             </div>
             <button type="button" class="category-list-edit" data-action="edit-category" data-category-id="${category.id}" aria-label="កែសម្រួលប្រភេទ ${category.name}">
                 <i class="fas fa-pen"></i>
@@ -263,7 +263,7 @@ CoffeePOS.prototype.renderItems = function () {
         grid.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-light);">
                 <i class="fas fa-box-open" style="font-size:48px;margin-bottom:15px;opacity:0.3;"></i>
-                <p>គ្មានមុខម្ហូប</p>
+                <p>គ្មានមុខទំនិញ</p>
             </div>`;
         return;
     }
@@ -300,7 +300,7 @@ CoffeePOS.prototype.openItemModal = function (itemId = null) {
         const item = this.data.products.find(p => String(p.id) === String(itemId));
         if (item) {
             this.editingItem = item;
-            document.getElementById('itemModalTitle').innerHTML = '<i class="fas fa-edit"></i> កែសម្រួលមុខម្ហូប';
+            document.getElementById('itemModalTitle').innerHTML = '<i class="fas fa-edit"></i> កែសម្រួលមុខទំនិញ';
             document.getElementById('itemId').value          = item.id;
             document.getElementById('itemName').value        = item.name;
             document.getElementById('itemCategory').value    = item.category;
@@ -318,7 +318,7 @@ CoffeePOS.prototype.openItemModal = function (itemId = null) {
         }
     } else {
         this.editingItem = null;
-        document.getElementById('itemModalTitle').innerHTML = '<i class="fas fa-plus"></i> បន្ថែមមុខម្ហូប';
+        document.getElementById('itemModalTitle').innerHTML = '<i class="fas fa-plus"></i> បន្ថែមមុខទំនិញ';
         document.getElementById('itemId').value = '';
     }
     modal.classList.add('active');
@@ -391,7 +391,7 @@ CoffeePOS.prototype.saveItem = async function () {
         }
 
         if (!result.success) {
-            this.showToast(result.message || 'មិនអាចរក្សាទុកមុខម្ហូបបានទេ!', 'error');
+            this.showToast(result.message || 'មិនអាចរក្សាទុកមុខទំនិញបានទេ!', 'error');
             return;
         }
 
@@ -405,7 +405,7 @@ CoffeePOS.prototype.saveItem = async function () {
         syncCategoryLookups(this.data.categories || []);
         this.closeAllModals();
         this.renderItems();
-        this.showToast(id ? 'បានកែសម្រួលមុខម្ហូប!' : 'បានបន្ថែមមុខម្ហូប!', 'success');
+        this.showToast(id ? 'បានកែសម្រួលមុខទំនិញ!' : 'បានបន្ថែមមុខទំនិញ!', 'success');
     } catch (error) {
         console.error('Save item error:', error);
         this.showToast('កំហុសក្នុងការរក្សាទុក: ' + error.message, 'error');
@@ -413,8 +413,8 @@ CoffeePOS.prototype.saveItem = async function () {
 };
 
 CoffeePOS.prototype.deleteItem = async function (id) {
-    const confirmed = await this.showConfirmDialog('តើអ្នកចង់លុបមុខម្ហូបនេះទេ?', {
-        title: 'លុបមុខម្ហូប',
+    const confirmed = await this.showConfirmDialog('តើអ្នកចង់លុបមុខទំនិញនេះទេ?', {
+        title: 'លុបមុខទំនិញ',
         confirmText: 'លុប',
         confirmIcon: 'fa-trash',
         confirmClass: 'danger'
@@ -423,18 +423,26 @@ CoffeePOS.prototype.deleteItem = async function (id) {
     if (!confirmed) return;
 
     try {
-        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-        const result = await res.json();
+        const response = await fetch(`/api/products/${id}`, {
+            method: 'DELETE'
+        });
+        const result = await response.json();
 
         if (!result.success) {
-            this.showToast(result.message || 'មិនអាចលុបមុខម្ហូបបានទេ!', 'error');
+            this.showToast(result.message || 'មិនអាចលុបមុខទំនិញបានទេ!', 'error');
             return;
         }
 
-        this.data.products = this.data.products.filter(p => String(p.id) !== String(id));
-        saveData(this.data);
+        // Refresh products from API
+        const prodRes = await fetch('/api/products').then(r => r.json());
+        if (prodRes.success) {
+            this.data.products = prodRes.products;
+            saveData(this.data);
+        }
+
+        syncCategoryLookups(this.data.categories || []);
         this.renderItems();
-        this.showToast('បានលុបមុខម្ហូប!', 'success');
+        this.showToast('បានលុបមុខទំនិញ!', 'success');
     } catch (error) {
         console.error('Delete item error:', error);
         this.showToast('កំហុសក្នុងការលុប: ' + error.message, 'error');

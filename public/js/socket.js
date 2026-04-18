@@ -57,19 +57,19 @@ CoffeePOS.prototype.handleOrderDeleted = function (data) {
 };
 
 CoffeePOS.prototype.handleProductCreated = function (data) {
-    this.showToast('មុខម្ហូបថ្មីត្រូវបានបន្ថែម!', 'success');
+    this.showToast('មុខទំនិញថ្មីត្រូវបានបន្ថែម!', 'success');
     if (this.currentPage === 'pos')   this.renderProducts();
     if (this.currentPage === 'items') this.renderItems();
 };
 
 CoffeePOS.prototype.handleProductUpdated = function (data) {
-    this.showToast('មុខម្ហូបត្រូវបានកែសម្រួល!', 'success');
+    this.showToast('មុខទំនិញត្រូវបានកែសម្រួល!', 'success');
     if (this.currentPage === 'pos')   this.renderProducts();
     if (this.currentPage === 'items') this.renderItems();
 };
 
 CoffeePOS.prototype.handleProductDeleted = function (data) {
-    this.showToast('មុខម្ហូបត្រូវបានលុប!', 'warning');
+    this.showToast('មុខទំនិញត្រូវបានលុប!', 'warning');
     if (this.currentPage === 'pos')   this.renderProducts();
     if (this.currentPage === 'items') this.renderItems();
 };

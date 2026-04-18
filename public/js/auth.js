@@ -76,7 +76,7 @@ CoffeePOS.prototype.displayUserPermissions = function () {
 
     const icons = {
         pos:     '<i class="fas fa-cash-register" title="លក់"></i>',
-        items:   '<i class="fas fa-box"           title="គ្រប់គ្រងមុខម្ហូប"></i>',
+        items:   '<i class="fas fa-box"           title="គ្រប់គរងមុខទំនិញ"></i>',
         orders:  '<i class="fas fa-receipt"       title="មើលការលក់"></i>',
         reports: '<i class="fas fa-chart-line"    title="របាយការណ៍"></i>'
     };
